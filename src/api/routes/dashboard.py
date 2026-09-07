@@ -29,6 +29,7 @@ from ..errors import RequestDataError, ResourceNotFoundError
 from ..schemas import (
     DashboardAppointmentListResponse,
     DashboardAppointmentSchema,
+    DashboardWaitingSchema,
     DashboardCaseDetailResponse,
     DashboardCaseListResponse,
     DashboardCaseSummarySchema,
@@ -104,10 +105,35 @@ def list_appointments(
                     status=booking.status.value,
                 )
             )
+        waiting = []
+        for case in unit_of_work.cases.list_by_state(
+            business_id, (ProcessState.QUALIFIED,), limit=200
+        ):
+            if case.is_test and not include_test:
+                continue
+            if unit_of_work.bookings.get_for_case(business_id, case.case_id) is not None:
+                continue
+            lead = unit_of_work.leads.get(business_id, case.lead.lead_id)
+            if lead is None:
+                continue
+            service_id = lead.attributes.get("service_requested")
+            service_key = str(service_id) if service_id else None
+            channel = case.metadata.get("waiting_channel")
+            waiting.append(
+                DashboardWaitingSchema(
+                    case_id=case.case_id,
+                    lead=DashboardLeadSchema.from_domain(lead),
+                    service_id=service_key,
+                    service_name=service_names.get(service_key) if service_key else None,
+                    waiting_channel=str(channel) if channel else None,
+                    updated_at=case.updated_at,
+                )
+            )
     return DashboardAppointmentListResponse(
         day=day,
         timezone=zone_name,
         appointments=tuple(appointments),
+        waiting=tuple(waiting),
     )
 
 

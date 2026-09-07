@@ -899,10 +899,22 @@ class DashboardAppointmentSchema(ApiModel):
     status: str
 
 
+class DashboardWaitingSchema(ApiModel):
+    """A QUALIFIED person with no calendar hour yet — operational tail, not a funnel."""
+
+    case_id: str
+    lead: DashboardLeadSchema
+    service_id: str | None
+    service_name: str | None
+    waiting_channel: str | None
+    updated_at: datetime
+
+
 class DashboardAppointmentListResponse(ApiModel):
     day: date
     timezone: str
     appointments: tuple[DashboardAppointmentSchema, ...]
+    waiting: tuple[DashboardWaitingSchema, ...] = ()
 
 
 class DashboardAnalyticsSchema(ApiModel):

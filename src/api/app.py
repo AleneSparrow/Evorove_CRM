@@ -205,6 +205,7 @@ def create_app(
     application.include_router(billing.webhook_router)
     application.include_router(lead_intake.router)
     application.include_router(hot_leads.router)
+    application.include_router(hot_leads.internal_router)
     application.include_router(public_conversations.router)
     application.include_router(sales.router)
     application.include_router(sms.router)

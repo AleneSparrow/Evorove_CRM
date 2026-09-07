@@ -256,7 +256,11 @@ def api_client(tmp_path: Path):
     unit_factory = SQLAlchemyUnitOfWork.factory_for_engine(engine)
     seed_business(unit_factory, "tenant-a")
     application = create_app(
-        settings=Settings(database_url=database_url, app_env="test"),
+        settings=Settings(
+            database_url=database_url,
+            app_env="test",
+            internal_task_secret="test-internal-secret",
+        ),
         intent_extractor=DeterministicIntentExtractor({}),
     )
     with TestClient(application, raise_server_exceptions=False) as client:
@@ -323,3 +327,33 @@ def test_api_rejects_a_slot_in_the_payload(api_client) -> None:
         json=_payload(slot_start_at="2026-09-08T15:00:00+00:00"),
     )
     assert response.status_code == 422
+
+
+def test_internal_accepts_hot_lead_with_task_secret(api_client) -> None:
+    client, factory = api_client
+    response = client.post(
+        "/api/v1/internal/businesses/tenant-a/hot-leads",
+        json=_payload(handoff_id="evorove-internal-1"),
+        headers={"X-Internal-Task-Secret": "test-internal-secret"},
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["current_state"] == "QUALIFIED"
+    assert body["booking_id"] is None
+    with factory() as uow:
+        assert uow.bookings.get_for_case("tenant-a", body["case_id"]) is None
+
+
+def test_internal_rejects_missing_or_wrong_secret(api_client) -> None:
+    client, _ = api_client
+    missing = client.post(
+        "/api/v1/internal/businesses/tenant-a/hot-leads",
+        json=_payload(handoff_id="evorove-internal-2"),
+    )
+    assert missing.status_code == 401
+    wrong = client.post(
+        "/api/v1/internal/businesses/tenant-a/hot-leads",
+        json=_payload(handoff_id="evorove-internal-3"),
+        headers={"X-Internal-Task-Secret": "nope"},
+    )
+    assert wrong.status_code == 401

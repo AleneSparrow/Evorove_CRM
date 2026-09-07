@@ -44,9 +44,9 @@
   `docker compose run --rm app pytest`.
 - Интеграционные тесты требуют `TEST_DATABASE_URL` на мигрированную базу; внутри сети
   Docker хост называется `postgres:5432`, снаружи — `localhost:5433`.
-- Внутренние sweep-эндпоинты (`follow-up/run`, `integrations/deliver`,
-  `commercial/expire`) требуют `INTERNAL_TASK_SECRET` на деплое, иначе отказывают
-  всем запросам (by design). Секрет задаёт Alena.
+- Внутренние sweep- и handoff-эндпоинты (`follow-up/run`, `integrations/deliver`,
+  `commercial/expire`, `businesses/{id}/hot-leads`) требуют `INTERNAL_TASK_SECRET`
+  на деплое, иначе отказывают всем запросам (by design). Секрет задаёт Alena.
 - Облачная песочница Cowork **не имеет** pytest/fastapi/sqlalchemy и доступа к PyPI —
   если тесты там «проверены вручную», это значит самодельный раннер, а не pytest.
   В терминале и в Docker всё запускается по-настоящему; перепроверять стоит.

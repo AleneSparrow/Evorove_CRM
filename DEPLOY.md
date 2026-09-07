@@ -202,6 +202,11 @@ yet; nothing else in the deploy depends on it.
    curl -X POST https://your-backend.up.railway.app/api/v1/internal/commercial/expire \
      -H "X-Internal-Task-Secret: <the same value as INTERNAL_TASK_SECRET>"
    ```
+   The same secret also gates `POST /api/v1/internal/businesses/{business_id}/hot-leads`,
+   the machine receive path for a ready-to-book person from Evorove. That is not a
+   cron job. Call it only when handing off a hot lead. It does not set a calendar
+   hour.
+
    `integrations/deliver` retries CRM webhook outbox rows and conversational
    SMS replies. `commercial/expire`
    expires stale quotes and payment requests that nobody has messaged since

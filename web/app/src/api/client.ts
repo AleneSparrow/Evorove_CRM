@@ -231,10 +231,20 @@ export interface DashboardAppointment {
   status: string;
 }
 
+export interface DashboardWaiting {
+  case_id: string;
+  lead: DashboardLead;
+  service_id: string | null;
+  service_name: string | null;
+  waiting_channel: string | null;
+  updated_at: string;
+}
+
 export interface DashboardAppointmentListResponse {
   day: string;
   timezone: string;
   appointments: DashboardAppointment[];
+  waiting: DashboardWaiting[];
 }
 
 export interface DashboardAnalytics {

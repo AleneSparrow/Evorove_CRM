@@ -173,6 +173,7 @@ def test_appointments_list_is_tomorrows_hours_not_a_funnel(appointment_environme
     assert body["day"] == "2026-09-08"
     assert body["timezone"] == "America/Chicago"
     assert [row["booking_id"] for row in body["appointments"]] == ["book-ada"]
+    assert body["waiting"] == []
     row = body["appointments"][0]
     assert row["lead"]["name"] == "Ada Lovelace"
     assert row["service_id"] == "diagnostic-visit"
@@ -224,5 +225,62 @@ def test_empty_tomorrow_is_not_a_lead_queue(appointment_environment, monkeypatch
     body = response.json()
     assert body["day"] == "2026-09-08"
     assert body["appointments"] == []
+    assert body["waiting"] == []
     assert "cases" not in body
     assert "leads" not in body
+
+
+def test_waiting_list_is_ready_people_without_an_hour(appointment_environment) -> None:
+    client, factory = appointment_environment
+    token, user_id = signup(client)
+    seed_booked_day(factory)
+    with factory() as uow:
+        uow.leads.add(
+            "biz-appt",
+            Lead(
+                "lead-ready",
+                "Ready Person",
+                None,
+                "+13125550109",
+                {"service_requested": "diagnostic-visit"},
+            ),
+            NOW,
+        )
+        uow.session.flush()
+        ready = uow.leads.get("biz-appt", "lead-ready")
+        uow.cases.add(
+            ProcessCase(
+                "case-ready",
+                "biz-appt",
+                ready,
+                ProcessState.QUALIFIED,
+                NOW,
+                NOW,
+                metadata={"hot_lead_handoff": True, "waiting_channel": "sms"},
+            )
+        )
+        qualifying = uow.leads.get("biz-appt", "lead-today")
+        uow.cases.add(
+            ProcessCase(
+                "case-qualifying",
+                "biz-appt",
+                qualifying,
+                ProcessState.QUALIFYING,
+                NOW,
+                NOW,
+            )
+        )
+        uow.commit()
+    link_owner(factory, "biz-appt", user_id)
+    response = client.get(
+        "/api/v1/businesses/biz-appt/appointments?on=2026-09-08",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert [row["booking_id"] for row in body["appointments"]] == ["book-ada"]
+    assert [row["case_id"] for row in body["waiting"]] == ["case-ready"]
+    row = body["waiting"][0]
+    assert row["lead"]["name"] == "Ready Person"
+    assert row["service_name"] == "Diagnostic visit"
+    assert row["waiting_channel"] == "sms"
