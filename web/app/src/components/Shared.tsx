@@ -1,10 +1,9 @@
 import type { ComponentType, ReactNode } from "react";
 import type { ProcessState } from "../api/client";
+import { brand } from "../brand/theme";
 
 /**
- * Design-system primitives ported directly from the prototype (atelierprototype.jsx --
- * a historical filename from before the Flywheel rebrand, not a brand reference),
- * kept pixel-for-pixel so Dashboard/Conversation/Settings still read as one product.
+ * Shared cabinet primitives. Visual tokens come from `brand` (Pulse).
  */
 
 /**
@@ -24,52 +23,18 @@ export const STAGES = ["New", "Contacted", "Qualified", "Booked", "Completed"];
 
 export type CaseState = "NEW" | "QUALIFYING" | "NEEDS_HUMAN" | "BOOKED" | "LOST" | "COMPLETED";
 
-// QUALIFYING deliberately uses the brand's functional accent (amber, not the
-// bronze brand accent) -- per the brand book, amber is reserved for
-// "active, in motion" product states, and a case being actively qualified
-// is exactly that. Every other state here is a resting/terminal state.
+// QUALIFYING uses Pulse coral: the lead is in motion. Lime is reserved for
+// "needs you" and other human/CTA states. Resting states stay mute or ink.
 export const STATE_META: Record<CaseState, { label: string; color: string; bg: string }> = {
-  NEW: { label: "New", color: "#6B6459", bg: "#F1F1EF" },
-  QUALIFYING: { label: "Qualifying", color: "#D97B29", bg: "#FBF0E2" },
-  NEEDS_HUMAN: { label: "Needs you", color: "#C97A1F", bg: "#FBF0E2" },
+  NEW: { label: "New", color: brand.mute, bg: "#F1F1EF" },
+  QUALIFYING: { label: "Qualifying", color: brand.coral, bg: brand.coralWash },
+  NEEDS_HUMAN: { label: "Needs you", color: brand.limeInk, bg: brand.limeWash },
   BOOKED: { label: "Booked", color: "#1E7B52", bg: "#E9F5EF" },
   LOST: { label: "Lost", color: "#B4483A", bg: "#FBEBE9" },
-  COMPLETED: { label: "Completed", color: "#151515", bg: "#F1F1EF" },
+  COMPLETED: { label: "Completed", color: brand.ink, bg: "#F1F1EF" },
 };
 
-/**
- * The Flywheel emblem, simplified for UI use -- a rim, five spokes, a small
- * hub node, and a short motion-trail arc (per the brand-book revision: five
- * spokes, not three or four -- three in a ring reads instantly as a
- * well-known automotive badge, a collision the book deliberately designs
- * away from; five keeps the silhouette unmistakably a wheel while staying
- * clear of that association at every size, "legible at 16x16px"). Renders
- * in `currentColor` so it inherits whatever text color its container sets.
- */
-export function FlywheelMark({ size = 16, className }: { size?: number; className?: string }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <circle cx="12" cy="12" r="8" />
-      <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" />
-      <path d="M12 12 L13.9 4.8" />
-      <path d="M12 12 L19.5 11.6" />
-      <path d="M12 12 L14.7 19" />
-      <path d="M12 12 L6.2 16.7" />
-      <path d="M12 12 L5.7 7.9" />
-      <path d="M20.3 9.3 A9 9 0 0 1 21.2 12.6" strokeWidth="1.2" opacity="0.55" />
-    </svg>
-  );
-}
+export { EvoroveMark, EvoroveMark as FlywheelMark } from "../brand/BrandLockup";
 
 /**
  * The real engine has more states than the UI's simplified five-bucket view
@@ -131,6 +96,8 @@ const EVENT_TYPE_META: Record<string, { stage: string; label: string }> = {
   DUPLICATE_IGNORED: { stage: "Updated", label: "Duplicate message ignored" },
   LEAD_QUALIFICATION_TRANSITION: { stage: "Decided", label: "Qualification stage updated" },
   HUMAN_REPLY_SENT: { stage: "Replied", label: "Staff replied to customer" },
+  CALLBACK_REQUESTED: { stage: "Follow-up", label: "Customer asked for a callback" },
+  SALES_FOLLOW_UP_SENT: { stage: "Follow-up", label: "Sales follow-up sent" },
 };
 
 export function describeEvent(eventType: string): { stage: string; label: string } {
@@ -161,7 +128,7 @@ export function formatRelativeTime(iso: string): string {
  *
  * Pass `labels` on the detail panels; the list rows want the dots alone.
  */
-export function Stepper({ stage, color = "#B87333", labels = false }: {
+export function Stepper({ stage, color = brand.coral, labels = false }: {
   stage: number;
   color?: string;
   labels?: boolean;
@@ -175,13 +142,13 @@ export function Stepper({ stage, color = "#B87333", labels = false }: {
             <div
               className="w-2 h-2 rounded-full shrink-0"
               style={{
-                backgroundColor: i <= stage ? color : "#DEDBD2",
+                backgroundColor: i <= stage ? color : brand.line,
                 boxShadow: i === stage ? `0 0 0 3px ${color}22` : "none",
               }}
               title={label}
             />
             {i < STAGES.length - 1 && (
-              <div className="h-px flex-1 mx-1.5" style={{ backgroundColor: i < stage ? color : "#DEDBD2" }} />
+              <div className="h-px flex-1 mx-1.5" style={{ backgroundColor: i < stage ? color : brand.line }} />
             )}
           </div>
         ))}
@@ -189,7 +156,7 @@ export function Stepper({ stage, color = "#B87333", labels = false }: {
       {labels && (
         <div className="grid mt-1.5" style={columns}>
           {STAGES.map((label) => (
-            <span key={label} className="text-[10px] leading-tight text-[#9C9488] break-words pr-1">{label}</span>
+            <span key={label} className="text-[10px] leading-tight text-clay break-words pr-1">{label}</span>
           ))}
         </div>
       )}
@@ -221,14 +188,14 @@ export function Field({
   return (
     <div className="mb-5">
       <label className="block text-sm font-medium mb-1.5">{label}</label>
-      {hint && <p className="text-xs text-[#9C9488] mb-2">{hint}</p>}
+      {hint && <p className="text-xs text-clay mb-2">{hint}</p>}
       {children}
     </div>
   );
 }
 
 export const inputCls =
-  "w-full px-3.5 py-2.5 rounded-lg border border-[#E7E5DE] bg-white text-sm outline-none focus:ring-2 focus:ring-[#B8733333] focus:border-[#B87333] transition-shadow";
+  "w-full px-3.5 py-2.5 rounded-lg border border-line bg-white text-sm outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral transition-shadow";
 
 /** Used on both Onboarding's "Who can you serve?" step and Settings' "Service
  * area" tab, so a remote/local choice looks and behaves identically wherever
@@ -255,17 +222,17 @@ export function AreaOption({
       type="button"
       onClick={onClick}
       className="text-left p-4 rounded-xl border transition-colors flex flex-col gap-2.5"
-      style={{ borderColor: active ? "#B87333" : "#E7E5DE", backgroundColor: active ? "#F5E7D6" : "#fff" }}
+      style={{ borderColor: active ? brand.coral : brand.line, backgroundColor: active ? brand.coralWash : "#fff" }}
     >
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center"
-        style={{ backgroundColor: active ? "#B87333" : "#F1F1EF", color: active ? "#fff" : "#6B6459" }}
+        style={{ backgroundColor: active ? brand.coral : "#F1F1EF", color: active ? brand.ink : brand.mute }}
       >
         <Icon size={15} />
       </div>
       <div>
         <div className="text-sm font-medium mb-0.5">{label}</div>
-        <div className="text-xs text-[#6B6459] leading-relaxed">{desc}</div>
+        <div className="text-xs text-mute leading-relaxed">{desc}</div>
       </div>
     </button>
   );
@@ -287,10 +254,10 @@ export function ToneOption({
       type="button"
       onClick={onClick}
       className="text-left px-4 py-3 rounded-xl border transition-colors"
-      style={{ borderColor: active ? "#B87333" : "#E7E5DE", backgroundColor: active ? "#F5E7D6" : "#fff" }}
+      style={{ borderColor: active ? brand.coral : brand.line, backgroundColor: active ? brand.coralWash : "#fff" }}
     >
       <div className="text-sm font-medium mb-0.5">{label}</div>
-      <div className="text-xs text-[#6B6459]">{desc}</div>
+      <div className="text-xs text-mute">{desc}</div>
     </button>
   );
 }
@@ -302,7 +269,7 @@ export function PreviewBanner({ text }: { text: string }) {
   return (
     <div
       className="px-4 py-2.5 text-xs font-medium flex items-center gap-2"
-      style={{ backgroundColor: "#FBF0E2", color: "#8A5A17", borderBottom: "1px solid #E7E5DE" }}
+      style={{ backgroundColor: brand.coralWash, color: brand.coralDeep, borderBottom: `1px solid ${brand.line}` }}
     >
       {text}
     </div>

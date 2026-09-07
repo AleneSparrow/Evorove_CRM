@@ -7,7 +7,7 @@
 
 Это **CRM / операционный контур** (кейсы, квалификация полей, бронь, смета, staff UI).
 Автоматизация процесса продажи живёт в соседнем репозитории
-`/Users/alenakulish/dev/ai-business-process-engine`. Не смешивать цели.
+`/Users/alenakulish/dev/evorove` (GitHub: `AleneSparrow/Evorove`). Не смешивать цели.
 
 ## Жёсткие правила
 

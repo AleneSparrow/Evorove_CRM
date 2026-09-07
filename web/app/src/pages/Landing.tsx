@@ -1,278 +1,140 @@
-import { useState } from "react";
+import { Suspense, lazy } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, MessageSquare, Workflow, ShieldCheck, Zap, ChevronRight, Check, Menu, X } from "lucide-react";
+import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { FaqSection } from "../components/FaqSection";
-import { FlywheelMark } from "../components/Shared";
+import { MarketingFooter, MarketingHeader } from "../brand/MarketingChrome";
+import { brand } from "../brand/theme";
 
-// Amber, not bronze -- this stepper visualizes a cycle in motion, and amber
-// is the brand book's functional accent for "active, in motion" states.
-function Stepper({ stage, color = "#D97B29" }: { stage: number; color?: string }) {
-  const STAGES = ["Trigger", "Context", "Decision", "Action", "Result"];
-  return (
-    <div className="flex items-center gap-1.5">
-      {STAGES.map((label, i) => (
-        <div key={label} className="flex items-center gap-1.5">
-          <div
-            className="w-2 h-2 rounded-full"
-            style={{
-              backgroundColor: i <= stage ? color : "#DEDBD2",
-              boxShadow: i === stage ? `0 0 0 3px ${color}22` : "none",
-            }}
-            title={label}
-          />
-          {i < STAGES.length - 1 && (
-            <div className="h-px w-4" style={{ backgroundColor: i < stage ? color : "#DEDBD2" }} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
+const OrbitScene = lazy(() => import("../brand/OrbitScene").then((mod) => ({ default: mod.OrbitScene })));
 
-function ChatBubble() {
-  const [step, setStep] = useState(2);
+function Block({ n, title, body, tone }: { n: string; title: string; body: string; tone: "ink" | "coral" | "lime" }) {
+  const bg = tone === "ink" ? brand.ink : tone === "coral" ? brand.coral : brand.lime;
+  const fg = tone === "lime" ? brand.ink : brand.cream;
   return (
-    <div className="bg-white rounded-2xl border border-[#E7E5DE] shadow-[0_1px_2px_rgba(0,0,0,0.03)] p-5 w-full max-w-sm">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-xs font-medium text-[#9C9488]" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
-          acme-co · web chat
-        </span>
-        <Stepper stage={step} />
-      </div>
-      <div className="flex flex-col gap-2.5">
-        <div className="self-start bg-[#F1F1EF] rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm max-w-[85%]">
-          Hi, I saw your pricing page — can someone walk me through getting started?
-        </div>
-        <div
-          className="self-end text-white rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm max-w-[85%]"
-          style={{ backgroundColor: "#B87333" }}
-        >
-          Happy to help. What are you looking to get done, and what's your timeline?
-        </div>
-        <div className="self-start bg-[#F1F1EF] rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm max-w-[85%]">
-          Onboarding automation for ~50 leads/month, ideally live this month
-        </div>
-      </div>
-      <button
-        onClick={() => setStep((s) => (s < 4 ? s + 1 : 2))}
-        className="mt-4 text-xs font-medium text-[#B87333] flex items-center gap-1"
-      >
-        Advance step <ChevronRight size={12} />
-      </button>
-    </div>
-  );
-}
-
-function StatBlock({ n, label }: { n: string; label: string }) {
-  return (
-    <div>
-      <div style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }} className="text-3xl mb-1">
-        {n}
-      </div>
-      <div className="text-sm text-[#6B6459]">{label}</div>
-    </div>
-  );
-}
-
-function FeatureCard({
-  icon: Icon,
-  title,
-  body,
-}: {
-  icon: typeof MessageSquare;
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-[#E7E5DE] p-6">
-      <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-4" style={{ backgroundColor: "#F5E7D6" }}>
-        <Icon size={17} color="#B87333" strokeWidth={2} />
-      </div>
-      <h3 className="font-semibold mb-1.5">{title}</h3>
-      <p className="text-sm text-[#6B6459] leading-relaxed">{body}</p>
-    </div>
-  );
-}
-
-function StepRow({ n, title, body, last }: { n: string; title: string; body: string; last?: boolean }) {
-  return (
-    <div className="flex gap-5">
-      <div className="flex flex-col items-center">
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
-          style={{ backgroundColor: "#151515", color: "#fff", fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif" }}
-        >
-          {n}
-        </div>
-        {!last && <div className="w-px flex-1 bg-[#E7E5DE] my-1" />}
-      </div>
-      <div className="pb-10">
-        <h3 className="font-semibold mb-1.5">{title}</h3>
-        <p className="text-sm text-[#6B6459] leading-relaxed max-w-md">{body}</p>
-      </div>
+    <div className="p-6 min-h-[160px] flex flex-col justify-between" style={{ background: bg, color: fg }}>
+      <div className="ev-display text-4xl">{n} {title}</div>
+      <p className="text-sm leading-relaxed mt-6 max-w-xs">{body}</p>
     </div>
   );
 }
 
 export default function Landing() {
-  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
-
   const primaryCtaTarget = user ? (user.business_ids.length > 0 ? "/app" : "/onboarding") : "/signup";
 
   return (
-    <div style={{ backgroundColor: "#F5F1EA", fontFamily: "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif", color: "#151515" }} className="min-h-screen w-full">
-      <header className="sticky top-0 z-20 backdrop-blur-sm" style={{ backgroundColor: "#F5F1EAEE", borderBottom: "1px solid #E7E5DE" }}>
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-white"
-              style={{ backgroundColor: "#B87333" }}
-            >
-              <FlywheelMark size={16} />
-            </div>
-            <span className="font-semibold text-sm" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif" }}>
-              Flywheel
-            </span>
-          </button>
-          <nav className="hidden md:flex items-center gap-8 text-xs font-medium uppercase tracking-wider text-[#6B6459]">
-            <a href="#how" className="hover:text-[#151515] transition-colors">How it works</a>
-            <a href="#features" className="hover:text-[#151515] transition-colors">Features</a>
-            <a href="#trust" className="hover:text-[#151515] transition-colors">Trust & audit</a>
-            <a href="/faq" className="hover:text-[#151515] transition-colors">FAQ</a>
-          </nav>
-          <div className="hidden md:flex items-center gap-3">
-            {!user && (
-              <button onClick={() => navigate("/login")} className="text-sm font-medium text-[#6B6459]">
-                Sign in
-              </button>
-            )}
-            <button
-              onClick={() => navigate(primaryCtaTarget)}
-              className="text-xs font-bold uppercase tracking-wide px-4 py-2 rounded flex items-center gap-1.5"
-              style={{ backgroundColor: "#D97B29", color: "#1C1206" }}
-            >
-              {user ? "Go to dashboard" : "Get started"} <ArrowRight size={14} />
-            </button>
-          </div>
-          <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-        {menuOpen && (
-          <div className="md:hidden px-6 pb-4 flex flex-col gap-3 text-xs font-medium uppercase tracking-wider text-[#6B6459]">
-            <a href="#how">How it works</a>
-            <a href="#features">Features</a>
-            <a href="#trust">Trust & audit</a>
-            <a href="/faq">FAQ</a>
-            {!user && (
-              <button onClick={() => navigate("/login")} className="text-left">Sign in</button>
-            )}
-            <button onClick={() => navigate(primaryCtaTarget)} className="font-bold px-4 py-2 rounded mt-1" style={{ backgroundColor: "#D97B29", color: "#1C1206" }}>
-              {user ? "Go to dashboard" : "Get started"}
-            </button>
-          </div>
-        )}
-      </header>
+    <div className="ev-page min-h-screen w-full overflow-x-hidden">
+      <MarketingHeader />
 
-      <section className="max-w-6xl mx-auto px-6 pt-16 md:pt-24 pb-16 grid md:grid-cols-2 gap-12 items-center">
-        <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full mb-6" style={{ backgroundColor: "#F5E7D6", color: "#B87333" }}>
-            <Zap size={12} /> Adaptive to any business
+      <section className="relative min-h-[92vh] max-w-6xl mx-auto px-6 pt-10 md:pt-16 pb-10">
+        <div className="absolute inset-y-0 right-[-8%] w-[58%] pointer-events-none hidden md:block">
+          <Suspense fallback={null}>
+            <OrbitScene variant="hero" />
+          </Suspense>
+        </div>
+        <div className="relative z-10 max-w-xl">
+          <div className="inline-block mb-5 text-[11px] font-extrabold uppercase tracking-[0.16em] px-3 py-1.5 -rotate-2" style={{ background: "#C6FF00", color: "#0B0B0D" }}>
+            On your script
           </div>
-          <h1 className="text-4xl md:text-5xl leading-[1.08] mb-5" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>
-            Every lead gets answered.<br />Every step gets logged.
+          <h1 className="ev-display text-[88px] md:text-[128px] text-ink">
+            EVERY LEAD.<br />NO DEAD AIR.
           </h1>
-          <p className="text-base text-[#6B6459] leading-relaxed mb-8 max-w-md">
-            Flywheel qualifies, books, and follows up with your customers the moment they message —
-            then hands off to you the moment it should. Nothing happens off the record.
+          <p className="text-base md:text-lg text-mute leading-relaxed mt-6 mb-8 max-w-md">
+            Evorove answers the inquiry, qualifies against your rules, and books the meeting.
+            AI only rewrites what you already approved.
           </p>
-          <div className="flex flex-wrap items-center gap-3 mb-10">
+          <div className="flex flex-wrap items-center gap-3 mb-12">
             <button
               onClick={() => navigate(primaryCtaTarget)}
-              className="text-sm font-bold uppercase tracking-wide px-5 py-3 rounded flex items-center gap-2"
-              style={{ backgroundColor: "#D97B29", color: "#1C1206" }}
+              className="text-[12px] font-bold uppercase tracking-[0.14em] px-5 py-3 rounded-full inline-flex items-center gap-2"
+              style={{ background: "#C6FF00", color: "#0B0B0D" }}
             >
-              Set up your business <ArrowRight size={15} />
+              Book a slot <ArrowRight size={15} />
             </button>
-            <a href="#trust" className="text-sm font-medium px-5 py-3 rounded-lg border border-[#E7E5DE] bg-white">
-              See how it stays accountable
+            <a href="#how" className="text-[12px] font-bold uppercase tracking-[0.14em] px-5 py-3 rounded-full" style={{ background: "#0B0B0D", color: "#F7F1E4" }}>
+              See the engine
             </a>
           </div>
           <div className="flex gap-10">
-            <StatBlock n="38s" label="Avg. first reply" />
-            <StatBlock n="100%" label="Steps audited" />
-            <StatBlock n="0" label="Silent AI actions" />
+            <div>
+              <div className="ev-display text-5xl">38s</div>
+              <div className="text-xs uppercase tracking-[0.16em] text-clay">Avg first reply</div>
+            </div>
+            <div>
+              <div className="ev-display text-5xl">100%</div>
+              <div className="text-xs uppercase tracking-[0.16em] text-clay">Steps audited</div>
+            </div>
+            <div>
+              <div className="ev-display text-5xl">0</div>
+              <div className="text-xs uppercase tracking-[0.16em] text-clay">Silent AI actions</div>
+            </div>
           </div>
         </div>
-        <div className="flex justify-center md:justify-end"><ChatBubble /></div>
-      </section>
-
-      <section className="border-y border-[#E7E5DE] bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-center gap-3 text-sm text-[#9C9488]">
-          <ShieldCheck size={15} /> Every decision your engine makes is deterministic, reviewable, and reversible — never a black box.
+        <div className="md:hidden h-[280px] -mx-6 mt-8">
+          <Suspense fallback={null}>
+            <OrbitScene variant="hero" />
+          </Suspense>
         </div>
       </section>
 
-      <section id="how" className="max-w-6xl mx-auto px-6 py-20 md:py-28">
-        <div className="max-w-lg mb-14">
-          <span className="text-xs font-medium text-[#B87333] uppercase tracking-wide">How it works</span>
-          <h2 className="text-3xl mt-2" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>One path, five steps, no surprises</h2>
-        </div>
-        <div className="grid md:grid-cols-2 gap-x-16">
-          <div>
-            <StepRow n="1" title="A customer messages your business" body="Through your website chat or a text — Flywheel picks it up the moment it arrives." />
-            <StepRow n="2" title="It qualifies against your rules" body="Your questions, required details, urgency — defined by you, applied every time, the same way." />
-            <StepRow n="3" title="It decides, or it asks you" body="Clear cases move forward on their own. Anything ambiguous escalates to you, in plain language." last />
-          </div>
-          <div className="mt-2 md:mt-[52px]">
-            <StepRow n="4" title="It books, quotes, or follows up" body="The action your rules allow — never more, never assumed." />
-            <StepRow n="5" title="Every step stays on the record" body="You can open any case and see exactly what happened, in order, at any time." last />
-          </div>
+      <section id="how" className="max-w-6xl mx-auto px-6 pb-6">
+        <div className="grid md:grid-cols-3 gap-2.5">
+          <Block n="01" title="ANSWER" tone="ink" body="Same-minute reply on web chat or text. Always on. Always on your script." />
+          <Block n="02" title="QUALIFY" tone="coral" body="Your questions, required details, urgency — the same path every time." />
+          <Block n="03" title="BOOK" tone="lime" body="A slot on the calendar, or a handoff to you. Never a silent guess." />
         </div>
       </section>
 
-      <section id="features" className="max-w-6xl mx-auto px-6 pb-20 md:pb-28">
-        <div className="grid md:grid-cols-3 gap-5">
-          <FeatureCard icon={MessageSquare} title="Answers instantly, in your voice" body="Configured tone, language, and channel per business — customers never feel handed to a machine." />
-          <FeatureCard icon={Workflow} title="Runs your process, not a generic script" body="Business DNA encodes your services, questions, and escalation rules — no two setups behave alike." />
-          <FeatureCard icon={ShieldCheck} title="Escalates instead of guessing" body="When something falls outside your rules, it stops and asks — it never improvises a commitment." />
+      <section id="features" className="max-w-6xl mx-auto px-6 py-20 md:py-28">
+        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-coral mb-3">Engine</p>
+        <h2 className="ev-display text-6xl md:text-7xl mb-10">Runs your process.<br />Not a generic script.</h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          {[
+            ["Your voice", "Configured tone, language, and channel per business."],
+            ["Your rules", "Business DNA encodes services, questions, and escalation."],
+            ["No guessing", "Outside the script it stops and asks you."],
+          ].map(([title, body]) => (
+            <div key={title} className="p-6 border" style={{ borderColor: "#E4DCCB", background: "#FFFCF6" }}>
+              <h3 className="font-semibold mb-2">{title}</h3>
+              <p className="text-sm text-mute leading-relaxed">{body}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      <section id="trust" className="bg-white border-y border-[#E7E5DE]">
+      <section id="trust" className="border-y" style={{ borderColor: "#E4DCCB", background: "#0B0B0D", color: "#F7F1E4" }}>
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-24 grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="text-xs font-medium text-[#B87333] uppercase tracking-wide">Trust & audit</span>
-            <h2 className="text-3xl mt-2 mb-5" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>Nothing your engine does is invisible</h2>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] mb-3" style={{ color: "#C6FF00" }}>Audit</p>
+            <h2 className="ev-display text-6xl mb-6">Nothing the engine does is invisible.</h2>
             <ul className="flex flex-col gap-3.5">
               {[
                 "Every trigger, decision, and action is written to an append-only history",
                 "AI drafts wording — it never bypasses your workflow or risk rules",
-                "You can trace any booking, quote, or reply back to the exact step that produced it",
+                "Trace any booking, quote, or reply back to the exact step",
               ].map((t) => (
-                <li key={t} className="flex items-start gap-2.5 text-sm text-[#151515]">
-                  <Check size={16} className="mt-0.5 shrink-0" color="#1E7B52" /> {t}
+                <li key={t} className="flex items-start gap-2.5 text-sm">
+                  <Check size={16} className="mt-0.5 shrink-0" color="#C6FF00" /> {t}
                 </li>
               ))}
             </ul>
           </div>
-          <div className="bg-[#F5F1EA] rounded-2xl border border-[#E7E5DE] p-5">
-            <div className="text-xs font-medium text-[#9C9488] mb-3" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>CS-1042 · audit trail</div>
+          <div className="p-5" style={{ background: "#161616", border: "1px solid #2A2A2A" }}>
+            <div className="text-xs mb-3" style={{ fontFamily: "'IBM Plex Mono', monospace", color: "#9A8F83" }}>CS-1042 · audit trail</div>
             <div className="flex flex-col gap-2.5 text-sm">
               {[
-                ["09:41:02", "Trigger", "Inbound web chat message received"],
+                ["09:41:02", "Trigger", "Inbound web chat received"],
                 ["09:41:03", "Context", "Matched existing lead by email"],
-                ["09:41:04", "Decision", "Missing required field: project timeline"],
+                ["09:41:04", "Decision", "Missing required field: timeline"],
                 ["09:41:04", "Action", "Sent clarifying question"],
-                ["09:44:18", "Result", "Escalated — customer flagged this as urgent"],
+                ["09:44:18", "Result", "Escalated — flagged as urgent"],
               ].map(([time, stage, desc]) => (
                 <div key={stage} className="flex gap-3">
-                  <span className="text-[#9C9488] shrink-0" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12 }}>{time}</span>
-                  <span className="font-medium shrink-0 w-16">{stage}</span>
-                  <span className="text-[#6B6459]">{desc}</span>
+                  <span className="shrink-0" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: "#9A8F83" }}>{time}</span>
+                  <span className="font-medium shrink-0 w-16" style={{ color: "#C6FF00" }}>{stage}</span>
+                  <span className="text-[#C9C2B6]">{desc}</span>
                 </div>
               ))}
             </div>
@@ -283,23 +145,22 @@ export default function Landing() {
       <FaqSection />
 
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-28 text-center">
-        <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>Your first customer is already messaging someone.</h2>
-        <p className="text-[#6B6459] mb-8 max-w-md mx-auto">Set up your Business DNA in minutes and give every lead a same-minute answer.</p>
+        <h2 className="ev-display text-6xl md:text-7xl mb-5">Your first customer<br />is already messaging someone.</h2>
+        <p className="text-mute mb-8 max-w-md mx-auto">Set up Business DNA in minutes. Give every lead a same-minute answer.</p>
         <button
           onClick={() => navigate(primaryCtaTarget)}
-          className="text-sm font-bold uppercase tracking-wide px-6 py-3.5 rounded inline-flex items-center gap-2"
-          style={{ backgroundColor: "#D97B29", color: "#1C1206" }}
-        >
+          className="text-[12px] font-bold uppercase tracking-[0.14em] px-6 py-3.5 rounded-full inline-flex items-center gap-2"
+          style={{ background: "#FF5A36", color: "#0B0B0D" }}
+      >
           Set up your business <ArrowRight size={15} />
         </button>
       </section>
 
-      <footer className="border-t border-[#E7E5DE] py-8">
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-xs text-[#9C9488]">
-          <span>© 2026 Flywheel</span>
-          <a href="/faq" className="hover:text-[#151515] transition-colors">FAQ</a>
-        </div>
-      </footer>
+      <div className="max-w-6xl mx-auto px-6 pb-8 flex items-center justify-center gap-2 text-sm text-clay">
+        <ShieldCheck size={15} /> Deterministic, reviewable, reversible — never a black box.
+      </div>
+
+      <MarketingFooter />
     </div>
   );
 }

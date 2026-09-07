@@ -217,27 +217,27 @@ export default function Conversation() {
     : null;
 
   return (
-    <div className="min-h-screen w-full flex" style={{ backgroundColor: "#F5F1EA", fontFamily: "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif", color: "#151515" }}>
+    <div className="ev-page min-h-screen w-full flex">
       <Sidebar />
       <main className="flex-1 min-w-0 flex flex-col pt-14 md:pt-0">
         <div className="flex-1 min-w-0 flex">
-          <div className="w-72 shrink-0 border-r border-[#E7E5DE] flex flex-col">
-            <div className="px-4 py-4 border-b border-[#E7E5DE]">
+          <div className="w-72 shrink-0 border-r border-line flex flex-col">
+            <div className="px-4 py-4 border-b border-line">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C9488]" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-clay" />
                 <input
                   aria-label="Search conversations"
                   placeholder="Search conversations..."
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  className="w-full pl-8 pr-3 py-2 rounded-lg bg-white border border-[#E7E5DE] text-sm outline-none"
+                  className="w-full pl-8 pr-3 py-2 rounded-lg bg-white border border-line text-sm outline-none"
                 />
               </div>
               <button
                 onClick={() => setAttentionOnly((current) => !current)}
-                className="mt-2 w-full rounded-lg px-3 py-1.5 text-xs font-medium border border-[#E7E5DE]"
-                style={{ backgroundColor: attentionOnly ? "#151515" : "#fff", color: attentionOnly ? "#fff" : "#6B6459" }}
-              >
+                className="mt-2 w-full rounded-lg px-3 py-1.5 text-xs font-medium border border-line"
+                style={{ backgroundColor: attentionOnly ? "#C6FF00" : "#fff", color: attentionOnly ? "#0B0B0D" : "#6B6459" }}
+            >
                 Needs attention only
               </button>
             </div>
@@ -248,14 +248,14 @@ export default function Conversation() {
             )}
             {conversations === null ? (
               !error && (
-                <div className="flex items-center gap-2 text-sm text-[#6B6459] py-8 justify-center">
+                <div className="flex items-center gap-2 text-sm text-mute py-8 justify-center">
                   <Loader2 size={16} className="animate-spin" /> Loading…
                 </div>
               )
             ) : conversations.length === 0 ? (
-              <div className="px-4 py-8 text-sm text-[#6B6459] text-center">No conversations yet.</div>
+              <div className="px-4 py-8 text-sm text-mute text-center">No conversations yet.</div>
             ) : filteredConversations.length === 0 ? (
-              <div className="px-4 py-8 text-sm text-[#6B6459] text-center">No conversations match your search.</div>
+              <div className="px-4 py-8 text-sm text-mute text-center">No conversations match your search.</div>
             ) : (
               <ul className="flex-1 overflow-y-auto">
                 {filteredConversations.map((c) => {
@@ -265,13 +265,13 @@ export default function Conversation() {
                       key={c.conversation_id}
                       onClick={() => setSelectedId(c.conversation_id)}
                       className="px-4 py-3.5 border-b border-[#F0EFE9] cursor-pointer"
-                      style={{ backgroundColor: c.conversation_id === selectedId ? "#FAFAF7" : "transparent" }}
-                    >
+                      style={{ backgroundColor: c.conversation_id === selectedId ? "#FFE8E1" : "transparent" }}
+                  >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-semibold">{c.lead_name || "Unnamed lead"}</span>
-                        <span className="text-[11px] text-[#9C9488]">{formatRelativeTime(c.last_activity_at)}</span>
+                        <span className="text-[11px] text-clay">{formatRelativeTime(c.last_activity_at)}</span>
                       </div>
-                      <div className="text-xs text-[#6B6459] truncate mb-1.5">{c.channel} · {c.status.replace(/_/g, " ")}</div>
+                      <div className="text-xs text-mute truncate mb-1.5">{c.channel} · {c.status.replace(/_/g, " ")}</div>
                       {c.case_state && <StatePill state={meta.caseState} />}
                     </li>
                   );
@@ -282,7 +282,7 @@ export default function Conversation() {
 
           <div className="flex-1 min-w-0 flex flex-col">
             {!selectedId ? (
-              <div className="flex-1 flex items-center justify-center text-sm text-[#6B6459] px-6 text-center">
+              <div className="flex-1 flex items-center justify-center text-sm text-mute px-6 text-center">
                 {conversations === null
                   ? "Loading…"
                   : requestedCaseMissing
@@ -290,22 +290,22 @@ export default function Conversation() {
                     : "Select a conversation"}
               </div>
             ) : !detail ? (
-              <div className="flex-1 flex items-center justify-center text-sm text-[#6B6459]">
+              <div className="flex-1 flex items-center justify-center text-sm text-mute">
                 <Loader2 size={16} className="animate-spin mr-2" /> Loading conversation…
               </div>
             ) : (
               <>
-                <header className="flex items-center justify-between px-6 py-4 border-b border-[#E7E5DE]">
+                <header className="flex items-center justify-between px-6 py-4 border-b border-line">
                   <div className="flex items-center gap-3">
-                    <button onClick={() => navigate("/app")} className="text-[#6B6459]"><ArrowLeft size={16} /></button>
+                    <button onClick={() => navigate("/app")} className="text-mute"><ArrowLeft size={16} /></button>
                     <div>
                       <div className="flex items-center gap-2">
                         <h1 className="text-base font-semibold">{detail.conversation.lead_name || "Unnamed lead"}</h1>
-                        <span className="text-[11px] text-[#9C9488]" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+                        <span className="text-[11px] text-clay" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
                           {detail.conversation.case_id ? detail.conversation.case_id.slice(0, 8) : detail.conversation.conversation_id.slice(0, 8)}
                         </span>
                       </div>
-                      <p className="text-xs text-[#6B6459] mt-0.5">{detail.conversation.channel} · {detail.conversation.status.replace(/_/g, " ")}</p>
+                      <p className="text-xs text-mute mt-0.5">{detail.conversation.channel} · {detail.conversation.status.replace(/_/g, " ")}</p>
                     </div>
                   </div>
                   {stateInfo && <StatePill state={stateInfo.caseState} />}
@@ -321,24 +321,24 @@ export default function Conversation() {
                     />
                   )}
                   {detail.messages.length === 0 && (
-                    <p className="text-sm text-[#6B6459] text-center mt-8">No messages in this conversation yet.</p>
+                    <p className="text-sm text-mute text-center mt-8">No messages in this conversation yet.</p>
                   )}
                   {detail.messages.map((m) => (
                     <div key={m.message_id} className={`flex flex-col ${m.direction === "inbound" ? "items-start" : "items-end"}`}>
                       <div
                         className={`text-sm max-w-md px-3.5 py-2.5 rounded-2xl ${m.direction === "inbound" ? "rounded-bl-sm" : "rounded-br-sm"}`}
-                        style={m.direction === "inbound" ? { backgroundColor: "#F1F1EF" } : { backgroundColor: "#B87333", color: "#fff" }}
-                      >
+                        style={m.direction === "inbound" ? { backgroundColor: "#F1F1EF" } : { backgroundColor: "#FFE4D6", color: "#0B0B0D" }}
+                    >
                         {m.text}
                       </div>
-                      <span className="text-[10px] text-[#9C9488] mt-1 px-1">
+                      <span className="text-[10px] text-clay mt-1 px-1">
                         {m.role === "customer" ? detail.conversation.lead_name || "Customer" : m.role === "human" ? "You" : "Engine"} · {formatRelativeTime(m.created_at)}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className="border-t border-[#E7E5DE] p-4">
+                <div className="border-t border-line p-4">
                   {caseDetail && (
                     <div className="mb-3 rounded-xl border border-[#E8CFAF] bg-[#FFF8EE] p-3">
                       {escalationLabel && (
@@ -346,10 +346,10 @@ export default function Conversation() {
                           <div className="flex items-center gap-2 text-xs font-semibold text-[#8A561B]">
                             <AlertTriangle size={14} /> Why this needs attention
                           </div>
-                          <p className="mt-1 text-sm text-[#6B6459]">{escalationLabel}</p>
+                          <p className="mt-1 text-sm text-mute">{escalationLabel}</p>
                         </>
                       )}
-                      <div className={`text-xs font-semibold text-[#6B6459] ${escalationLabel ? "mt-3" : ""}`}>Help improve AI decisions</div>
+                      <div className={`text-xs font-semibold text-mute ${escalationLabel ? "mt-3" : ""}`}>Help improve AI decisions</div>
                       <div className="mt-2.5 flex flex-wrap gap-2">
                         {([
                           ...(detail.conversation.escalation_reason === "identity_conflict"
@@ -365,8 +365,8 @@ export default function Conversation() {
                             key={outcome}
                             onClick={() => handleFeedback(outcome)}
                             disabled={feedbackSending !== null || feedbackSaved === outcome}
-                            className="rounded-lg border border-[#E8CFAF] bg-white px-2.5 py-1.5 text-[11px] font-medium text-[#6B6459] disabled:opacity-50"
-                          >
+                            className="rounded-lg border border-[#E8CFAF] bg-white px-2.5 py-1.5 text-[11px] font-medium text-mute disabled:opacity-50"
+                        >
                             {feedbackSending === outcome ? "Saving…" : feedbackSaved === outcome ? "Saved" : label}
                           </button>
                         ))}
@@ -391,20 +391,20 @@ export default function Conversation() {
                       placeholder={canReply ? "Reply as your business..." : "This conversation is closed"}
                       rows={2}
                       disabled={!canReply || sending}
-                      className="flex-1 px-3.5 py-2.5 rounded-lg border border-[#E7E5DE] bg-white text-sm outline-none resize-none disabled:opacity-60 disabled:bg-[#FAFAF7]"
+                      className="flex-1 px-3.5 py-2.5 rounded-lg border border-line bg-white text-sm outline-none resize-none disabled:opacity-60 disabled:bg-[#FAFAF7]"
                     />
                     <button
                       onClick={handleSend}
                       disabled={!canReply || sending || !reply.trim()}
                       title={canReply ? "Send reply" : "This conversation is closed"}
                       className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center text-white disabled:opacity-40 disabled:cursor-not-allowed"
-                      style={{ backgroundColor: "#151515" }}
-                    >
+                      style={{ backgroundColor: "#0B0B0D" }}
+                  >
                       {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
                     </button>
                   </div>
                   <div className="mt-2.5 flex items-center justify-between">
-                    <p className="text-xs text-[#9C9488]">
+                    <p className="text-xs text-clay">
                       {canResolve
                         ? "This case is waiting on your review."
                         : caseDetail
@@ -415,8 +415,8 @@ export default function Conversation() {
                       onClick={handleResolve}
                       disabled={!canResolve || resolving}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border disabled:opacity-40 disabled:cursor-not-allowed"
-                      style={{ borderColor: "#E7E5DE", color: "#151515" }}
-                    >
+                      style={{ borderColor: "#E4DCCB", color: "#0B0B0D" }}
+                  >
                       {resolving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                       Mark resolved
                     </button>
@@ -426,37 +426,37 @@ export default function Conversation() {
             )}
           </div>
 
-          <div className="w-80 shrink-0 border-l border-[#E7E5DE] p-5 hidden lg:flex flex-col gap-6">
+          <div className="w-80 shrink-0 border-l border-line p-5 hidden lg:flex flex-col gap-6">
             {stateInfo && (
               <div>
-                <div className="text-xs font-medium text-[#9C9488] mb-2">Case status</div>
-                <p className="text-[11px] text-[#9C9488] mb-2 leading-relaxed">
+                <div className="text-xs font-medium text-clay mb-2">Case status</div>
+                <p className="text-[11px] text-clay mb-2 leading-relaxed">
                   Process state for this deal — not the sales conversation stage.
                 </p>
-                <Stepper stage={stateInfo.stage} color="#B87333" labels />
+                <Stepper stage={stateInfo.stage} color="#FF5A36" labels />
               </div>
             )}
-            <div className="flex items-center gap-4 text-xs text-[#6B6459]">
+            <div className="flex items-center gap-4 text-xs text-mute">
               <span className="flex items-center gap-1.5"><Phone size={12} /> {caseDetail?.lead.phone || "Not on file"}</span>
               <span className="flex items-center gap-1.5"><Mail size={12} /> {caseDetail?.lead.email || "Not on file"}</span>
             </div>
             <div>
-              <div className="text-xs font-medium text-[#9C9488] mb-3" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+              <div className="text-xs font-medium text-clay mb-3" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
                 {caseDetail ? `${caseDetail.case_id.slice(0, 8)} · audit trail` : "audit trail"}
               </div>
               {!caseDetail ? (
-                <p className="text-xs text-[#9C9488]">This conversation isn't linked to a case yet.</p>
+                <p className="text-xs text-clay">This conversation isn't linked to a case yet.</p>
               ) : (
                 <div className="flex flex-col gap-2.5 text-sm">
                   {caseDetail.events.map((e) => {
                     const meta = describeEvent(e.event_type);
                     return (
                       <div key={e.event_id} className="flex gap-3">
-                        <span className="text-[#9C9488] shrink-0" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12 }}>
+                        <span className="text-clay shrink-0" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12 }}>
                           {new Date(e.occurred_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                         </span>
                         <span className="font-medium shrink-0 w-16">{meta.stage}</span>
-                        <span className="text-[#6B6459]">{meta.label}</span>
+                        <span className="text-mute">{meta.label}</span>
                       </div>
                     );
                   })}

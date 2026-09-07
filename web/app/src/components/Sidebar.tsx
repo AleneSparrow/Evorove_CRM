@@ -3,7 +3,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { LayoutGrid, MessageSquare, Workflow, CreditCard, LogOut, Menu, X, Plus, Check, ChevronsUpDown, Home, HelpCircle, User } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { api, type OwnedBusiness } from "../api/client";
-import { FlywheelMark } from "./Shared";
+import { EvoroveMark } from "./Shared";
+import { brand } from "../brand/theme";
 
 /** Dropdown for switching between the account's businesses -- only rendered
  * when there's more than one (see Sidebar). Also offers "Add another
@@ -28,16 +29,16 @@ function BusinessSwitcher({
       <button
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between gap-1.5 text-left"
-      >
+    >
         <div className="min-w-0">
           <div className="text-sm font-semibold leading-tight truncate">{active?.name ?? "Your business"}</div>
         </div>
-        <ChevronsUpDown size={13} className="shrink-0" style={{ color: "#9C9488" }} />
+        <ChevronsUpDown size={13} className="shrink-0" style={{ color: "#9A8F83" }} />
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white rounded-lg border border-[#E7E5DE] shadow-lg py-1.5 overflow-hidden">
+          <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white rounded-lg border border-line shadow-lg py-1.5 overflow-hidden">
             {businesses.map((b) => (
               <button
                 key={b.business_id}
@@ -45,9 +46,9 @@ function BusinessSwitcher({
                   setOpen(false);
                   if (b.business_id !== activeId) onSelect(b.business_id);
                 }}
-                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-[#F5F1EA]"
-                style={{ color: "#151515" }}
-              >
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-cream"
+                style={{ color: "#0B0B0D" }}
+            >
                 <span className="truncate">{b.name}</span>
                 {b.business_id === activeId && <Check size={13} style={{ color: "#1E7B52" }} className="shrink-0" />}
               </button>
@@ -58,9 +59,9 @@ function BusinessSwitcher({
                   setOpen(false);
                   onAddBusiness();
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-[#F5F1EA]"
-                style={{ color: "#B87333" }}
-              >
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-cream"
+                style={{ color: "#FF5A36" }}
+            >
                 <Plus size={13} className="shrink-0" /> Add another business
               </button>
             </div>
@@ -73,8 +74,8 @@ function BusinessSwitcher({
 
 function navVisual(active: boolean) {
   return {
-    color: active ? "#151515" : "#6B6459",
-    backgroundColor: active ? "#F5E7D6" : "transparent",
+    color: active ? brand.ink : brand.mute,
+    backgroundColor: active ? brand.lime : "transparent",
     fontWeight: active ? 600 : 500,
   };
 }
@@ -151,15 +152,15 @@ function MobileNav({
   return (
     <div className="md:hidden">
       <div
-        className="fixed top-0 inset-x-0 z-40 flex items-center justify-between px-4 border-b border-[#E7E5DE]"
-        style={{ height: 56, backgroundColor: "#F5F1EA" }}
+        className="fixed top-0 inset-x-0 z-40 flex items-center justify-between px-4 border-b border-line"
+        style={{ height: 56, backgroundColor: brand.cream }}
       >
         <button onClick={() => go("/app")} className="flex items-center gap-2 min-w-0">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0"
-            style={{ backgroundColor: "#B87333" }}
+            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+            style={{ backgroundColor: brand.coral, color: brand.ink }}
           >
-            <FlywheelMark size={16} />
+            <EvoroveMark size={16} />
           </div>
           <div className="text-left min-w-0">
             <div className="text-sm font-semibold leading-tight truncate">{businessName ?? "Your business"}</div>
@@ -169,8 +170,8 @@ function MobileNav({
           onClick={() => setOpen(true)}
           aria-label="Open menu"
           className="p-2 -mr-2 shrink-0"
-          style={{ color: "#151515" }}
-        >
+          style={{ color: "#0B0B0D" }}
+      >
           <Menu size={20} />
         </button>
       </div>
@@ -199,8 +200,8 @@ function MobileNav({
                     to="/app/account"
                     aria-label="Open personal account"
                     onClick={() => setOpen(false)}
-                    className="block max-w-full text-[11px] text-[#6B6459] leading-tight truncate rounded-sm hover:text-[#B87333] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B87333] focus-visible:ring-offset-2 transition-colors"
-                  >
+                    className="block max-w-full text-[11px] text-mute leading-tight truncate rounded-sm hover:text-coral focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 transition-colors"
+                >
                     {email}
                   </NavLink>
                 </div>
@@ -220,15 +221,22 @@ function MobileNav({
                 </div>
               </nav>
             </div>
-            <button
-              onClick={() => {
-                setOpen(false);
-                onLogout();
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#6B6459]"
+            <div>
+              <div className="px-3 mb-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-clay">
+                <NavLink to="/privacy" onClick={() => setOpen(false)} className="hover:text-ink">Privacy</NavLink>
+                <NavLink to="/terms" onClick={() => setOpen(false)} className="hover:text-ink">Terms</NavLink>
+                <NavLink to="/dpa" onClick={() => setOpen(false)} className="hover:text-ink">DPA</NavLink>
+              </div>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onLogout();
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-mute"
             >
-              <LogOut size={16} strokeWidth={2} /> Sign out
-            </button>
+                <LogOut size={16} strokeWidth={2} /> Sign out
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -279,15 +287,15 @@ export function Sidebar() {
         onSelectBusiness={selectBusiness}
         onLogout={handleLogout}
       />
-      <aside className="w-60 shrink-0 border-r border-[#E7E5DE] px-4 py-5 hidden md:flex md:flex-col justify-between">
+      <aside className="w-60 shrink-0 border-r border-line px-4 py-5 hidden md:flex md:flex-col justify-between">
         <div>
           <div className="flex items-center gap-2 px-2 mb-8">
             <button
               onClick={() => navigate("/app")}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0"
-              style={{ backgroundColor: "#B87333" }}
+              className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+              style={{ backgroundColor: brand.coral, color: brand.ink }}
             >
-              <FlywheelMark size={16} />
+              <EvoroveMark size={16} />
             </button>
             <div className="min-w-0 flex-1">
               {businesses.length > 1 ? (
@@ -305,8 +313,8 @@ export function Sidebar() {
               <NavLink
                 to="/app/account"
                 aria-label="Open personal account"
-                className="block max-w-full text-[11px] text-[#6B6459] leading-tight truncate rounded-sm hover:text-[#B87333] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B87333] focus-visible:ring-offset-2 transition-colors"
-              >
+                className="block max-w-full text-[11px] text-mute leading-tight truncate rounded-sm hover:text-coral focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 transition-colors"
+            >
                 {user?.email}
               </NavLink>
             </div>
@@ -327,12 +335,17 @@ export function Sidebar() {
           <NavItem icon={Home} label="Home page" to="/" end />
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#6B6459] hover:text-[#151515] transition-colors"
-          >
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-mute hover:text-ink transition-colors"
+        >
             <LogOut size={16} strokeWidth={2} /> Sign out
           </button>
-          <div className="px-2 mt-3 text-[11px] text-[#9C9488] leading-relaxed">
+          <div className="px-2 mt-3 text-[11px] text-clay leading-relaxed">
             Every step your engine takes — logged, reversible, never silent.
+          </div>
+          <div className="px-2 mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-clay">
+            <NavLink to="/privacy" className="hover:text-ink">Privacy</NavLink>
+            <NavLink to="/terms" className="hover:text-ink">Terms</NavLink>
+            <NavLink to="/dpa" className="hover:text-ink">DPA</NavLink>
           </div>
         </div>
       </aside>

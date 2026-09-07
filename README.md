@@ -1,6 +1,6 @@
 # Evorove CRM
 
-Evorove is the operational CRM snapshot of the former AI Business Process Engine: cases, leads, qualification, booking or quoting, follow-up, payment requests, staff conversations, and tenant **Business DNA**. Sales-conversation automation (discovery, objections, commitment) lives in the sister repo `ai-business-process-engine`, not here.
+Evorove CRM is the operational snapshot of the case pipeline: leads, qualification, booking or quoting, follow-up, payment requests, staff conversations, and tenant **Business DNA**. Sales-conversation automation (discovery, objections, commitment) lives in the sister repo [Evorove](https://github.com/AleneSparrow/Evorove), not here.
 
 See [SNAPSHOT.md](SNAPSHOT.md) for the split date and what was copied.
 

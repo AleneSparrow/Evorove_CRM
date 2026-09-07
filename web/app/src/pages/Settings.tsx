@@ -529,22 +529,22 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen w-full flex" style={{ backgroundColor: "#F5F1EA", fontFamily: "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif", color: "#151515" }}>
+    <div className="ev-page min-h-screen w-full flex">
       <Sidebar />
       <main className="flex-1 min-w-0 flex flex-col pt-14 md:pt-0">
-        <header className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-[#E7E5DE]">
+        <header className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-line">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/app")}
               aria-label="Back to Overview"
               className="md:hidden -ml-1.5 p-1.5 rounded-lg shrink-0"
               style={{ color: "#6B6459" }}
-            >
+          >
               <ArrowLeft size={18} />
             </button>
             <div>
-              <h1 className="text-xl" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>Settings</h1>
-              <p className="text-sm text-[#6B6459] mt-0.5" style={{ fontFamily: dirty ? "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" : "'IBM Plex Mono', monospace" }}>
+              <h1 className="text-xl font-semibold">Settings</h1>
+              <p className="text-sm text-mute mt-0.5" style={{ fontFamily: dirty ? "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" : "'IBM Plex Mono', monospace" }}>
                 {dirty
                   ? "Unsaved changes"
                   : updatedAt
@@ -561,7 +561,7 @@ export default function Settings() {
         </header>
 
         {loading && (
-          <div className="flex items-center gap-2 text-sm text-[#6B6459] py-16 justify-center">
+          <div className="flex items-center gap-2 text-sm text-mute py-16 justify-center">
             <Loader2 size={16} className="animate-spin" /> Loading…
           </div>
         )}
@@ -577,13 +577,13 @@ export default function Settings() {
         {!loading && !loadError && state && (
           <>
             <div className="max-w-3xl px-6 md:px-8 py-8 w-full">
-              <div className="flex items-center gap-1 mb-8 border-b border-[#E7E5DE]">
+              <div className="flex items-center gap-1 mb-8 border-b border-line">
                 <button
                   onClick={() => scrollTabRail(-1)}
                   aria-label="Scroll tabs left"
                   className="md:hidden shrink-0 p-1 -mb-px"
-                  style={{ color: "#9C9488" }}
-                >
+                  style={{ color: "#9A8F83" }}
+              >
                   <ChevronLeft size={16} />
                 </button>
                 <div ref={tabRailRef} className="flex items-center gap-1 overflow-x-auto scroll-smooth">
@@ -592,10 +592,10 @@ export default function Settings() {
                       key={t.key}
                       onClick={() => setTab(t.key)}
                       className="px-3.5 py-2.5 text-sm whitespace-nowrap relative -mb-px shrink-0"
-                      style={{ color: tab === t.key ? "#151515" : "#9C9488", fontWeight: tab === t.key ? 600 : 500 }}
-                    >
+                      style={{ color: tab === t.key ? "#0B0B0D" : "#9A8F83", fontWeight: tab === t.key ? 600 : 500 }}
+                  >
                       {t.label}
-                      {tab === t.key && <span className="absolute left-0 right-0 -bottom-px h-0.5" style={{ backgroundColor: "#151515" }} />}
+                      {tab === t.key && <span className="absolute left-0 right-0 -bottom-px h-0.5" style={{ backgroundColor: "#0B0B0D" }} />}
                     </button>
                   ))}
                 </div>
@@ -603,22 +603,22 @@ export default function Settings() {
                   onClick={() => scrollTabRail(1)}
                   aria-label="Scroll tabs right"
                   className="md:hidden shrink-0 p-1 -mb-px"
-                  style={{ color: "#9C9488" }}
-                >
+                  style={{ color: "#9A8F83" }}
+              >
                   <ChevronRight size={16} />
                 </button>
               </div>
 
               {tab === "widget" && (
                 <div>
-                  <div className="rounded-2xl border p-5 md:p-6" style={{ borderColor: "#D9B48F", backgroundColor: "#FFF9F2" }}>
+                  <div className="rounded-2xl border p-5 md:p-6" style={{ borderColor: "#FF5A36", backgroundColor: "#FFE8E1" }}>
                     <div className="flex items-start gap-3 mb-5">
-                      <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white" style={{ backgroundColor: "#B87333" }}>
+                      <span className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "#FF5A36", color: "#0B0B0D" }}>
                         <MessageSquare size={18} />
                       </span>
                       <div>
-                        <h2 className="text-lg font-semibold">Put Flywheel on your website</h2>
-                        <p className="text-sm text-[#6B6459] mt-1 leading-relaxed">
+                        <h2 className="text-lg font-semibold">Put Evorove on your website</h2>
+                        <p className="text-sm text-mute mt-1 leading-relaxed">
                           Copy this code and paste it into your website just before <code>&lt;/body&gt;</code>. Once published, customers can start a conversation from any page.
                         </p>
                       </div>
@@ -626,28 +626,28 @@ export default function Settings() {
                     <div className="relative">
                       <pre
                         className="text-xs p-4 pr-24 rounded-lg border overflow-x-auto bg-white"
-                        style={{ borderColor: "#E7E5DE", fontFamily: "'IBM Plex Mono', monospace" }}
-                      >
+                        style={{ borderColor: "#E4DCCB", fontFamily: "'IBM Plex Mono', monospace" }}
+                    >
                         <code>{widgetSnippet ?? "Loading…"}</code>
                       </pre>
                       <button
                         onClick={copyWidgetSnippet}
                         disabled={!widgetSnippet}
                         className="absolute top-2.5 right-2.5 text-xs font-medium px-3 py-2 rounded-md flex items-center gap-1.5 text-white disabled:opacity-50"
-                        style={{ backgroundColor: "#151515" }}
-                      >
+                        style={{ backgroundColor: "#0B0B0D" }}
+                    >
                         {snippetCopied ? <Check size={13} /> : <Copy size={13} />}
                         {snippetCopied ? "Copied" : "Copy code"}
                       </button>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4">
-                      <p className="text-xs text-[#6B6459]">Using Wix, Squarespace, Webflow, WordPress, or another site builder? Add this as a custom code or HTML snippet.</p>
+                      <p className="text-xs text-mute">Using Wix, Squarespace, Webflow, WordPress, or another site builder? Add this as a custom code or HTML snippet.</p>
                       <a
                         href={`${API_BASE}/widget/demo.html?business_id=${encodeURIComponent(businessId ?? "")}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-[#E7E5DE] bg-white text-xs font-medium"
-                      >
+                        className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-line bg-white text-xs font-medium"
+                    >
                         Preview widget <ExternalLink size={12} />
                       </a>
                     </div>
@@ -657,9 +657,9 @@ export default function Settings() {
                       the screen you are on when you test the widget and the
                       screen you come back to when you are ready to go live.
                       Nobody installing a widget opens a statistics tab. */}
-                  <div className="rounded-2xl border p-5 mt-5" style={{ borderColor: "#E7E5DE" }}>
+                  <div className="rounded-2xl border p-5 mt-5" style={{ borderColor: "#E4DCCB" }}>
                     <h2 className="text-base font-semibold">Test mode</h2>
-                    <p className="text-sm text-[#6B6459] mt-1 leading-relaxed">
+                    <p className="text-sm text-mute mt-1 leading-relaxed">
                       Keep this on while you test your widget. New conversations stay fully visible in your audit trail, but do not affect your statistics until you go live.
                     </p>
                     <label className="flex items-start gap-3 mt-5 cursor-pointer">
@@ -668,7 +668,7 @@ export default function Settings() {
                         checked={reporting?.test_mode_enabled ?? false}
                         disabled={!reporting || reportingSaving}
                         onChange={(event) => updateReporting({ test_mode_enabled: event.target.checked })}
-                        className="mt-0.5 accent-[#B87333]"
+                        className="mt-0.5 accent-coral"
                       />
                       <span>
                         {/* The label used to read "Test mode is on" as a fixed
@@ -678,7 +678,7 @@ export default function Settings() {
                             customer conversations count, that is not a
                             wording nit. */}
                         <span className="block text-sm font-medium">Test mode</span>
-                        <span className="block text-xs text-[#6B6459] mt-0.5">
+                        <span className="block text-xs text-mute mt-0.5">
                           {reporting?.test_mode_enabled
                             ? "On — new conversations stay out of your statistics. Turn it off when you are ready for real customers to count."
                             : "Off — new conversations count towards your statistics."}
@@ -690,8 +690,8 @@ export default function Settings() {
                         onClick={() => updateReporting({ test_mode_enabled: false })}
                         disabled={reportingSaving}
                         className="mt-4 text-sm font-medium text-white px-4 py-2.5 rounded-lg disabled:opacity-50"
-                        style={{ backgroundColor: "#151515" }}
-                      >
+                        style={{ backgroundColor: "#0B0B0D" }}
+                    >
                         Go live
                       </button>
                     )}
@@ -753,44 +753,44 @@ export default function Settings() {
                   <Field label="What you offer" hint="These are what it books, quotes, and answers questions about.">
                     <div className="flex flex-wrap gap-2 mb-3">
                       {state.services.map((s) => (
-                        <span key={s.key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-[#F1F1EF] border border-[#E7E5DE]">
-                          {s.name} <X size={12} className="cursor-pointer text-[#9C9488]" onClick={() => removeService(s.key)} />
+                        <span key={s.key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-[#F1F1EF] border border-line">
+                          {s.name} <X size={12} className="cursor-pointer text-clay" onClick={() => removeService(s.key)} />
                         </span>
                       ))}
-                      {state.services.length === 0 && <span className="text-xs text-[#9C9488]">No services yet — add at least one.</span>}
+                      {state.services.length === 0 && <span className="text-xs text-clay">No services yet — add at least one.</span>}
                     </div>
                     <div className="flex gap-2">
                       <input className={inputCls} placeholder="Add a service" value={newService} onChange={(e) => setNewService(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addService())} />
-                      <button onClick={addService} className="px-4 rounded-lg text-white text-sm font-medium flex items-center gap-1.5 shrink-0" style={{ backgroundColor: "#151515" }}>
+                      <button onClick={addService} className="px-4 rounded-lg text-white text-sm font-medium flex items-center gap-1.5 shrink-0" style={{ backgroundColor: "#0B0B0D" }}>
                         <Plus size={14} /> Add
                       </button>
                     </div>
                   </Field>
 
                   <div className="text-sm font-semibold mt-8 mb-2 pt-6 border-t border-[#F0EFE9]">Online booking</div>
-                  <p className="text-sm text-[#6B6459] mb-6">
+                  <p className="text-sm text-mute mb-6">
                     Let clients pick a real open slot and get booked automatically — no back-and-forth.
                     Only services set to "Book online" below are offered a slot; this needs to be on
                     for that to actually happen.
                   </p>
-                  <label className="flex items-start gap-3 p-4 rounded-xl border cursor-pointer mb-6" style={{ borderColor: state.bookingEnabled ? "#B87333" : "#E7E5DE", backgroundColor: state.bookingEnabled ? "#F5E7D6" : "#fff" }}>
+                  <label className="flex items-start gap-3 p-4 rounded-xl border cursor-pointer mb-6" style={{ borderColor: state.bookingEnabled ? "#FF5A36" : "#E4DCCB", backgroundColor: state.bookingEnabled ? "#FFE8E1" : "#fff" }}>
                     <input
                       type="checkbox"
                       checked={state.bookingEnabled}
                       onChange={() => setState({ ...state, bookingEnabled: !state.bookingEnabled })}
-                      className="mt-0.5 accent-[#B87333]"
+                      className="mt-0.5 accent-coral"
                     />
                     <div>
                       <div className="text-sm font-medium">Turn on online booking</div>
-                      <div className="text-xs text-[#6B6459] mt-0.5">Off by default — until this is on, every qualified lead still goes to you instead of getting a slot.</div>
+                      <div className="text-xs text-mute mt-0.5">Off by default — until this is on, every qualified lead still goes to you instead of getting a slot.</div>
                     </div>
                   </label>
 
                   <Field label="What happens once a lead qualifies for each service?" hint="Book online offers a real slot. Send a price quote gives an automatic fixed price. Send next steps replies with instructions instead of a price or a slot. Always hand off to you sends every qualified lead your way.">
                     <div className="flex flex-col gap-4">
-                      {state.services.length === 0 && <span className="text-xs text-[#9C9488]">Add a service above first.</span>}
+                      {state.services.length === 0 && <span className="text-xs text-clay">Add a service above first.</span>}
                       {state.services.map((s) => (
-                        <div key={s.key} className="p-3 rounded-xl border border-[#E7E5DE]">
+                        <div key={s.key} className="p-3 rounded-xl border border-line">
                           <div className="flex items-center gap-3 flex-wrap">
                             <span className="text-sm font-medium min-w-0 flex-1">{s.name}</span>
                             <select
@@ -804,7 +804,7 @@ export default function Settings() {
                                 );
                                 setState({ ...state, services });
                               }}
-                            >
+                          >
                               {COMMERCIAL_PATH_OPTIONS.map((opt) => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                               ))}
@@ -812,7 +812,7 @@ export default function Settings() {
                           </div>
                           {s.commercialPath === "quote" && (
                             <div className="mt-3">
-                              <label className="text-xs text-[#6B6459] block mb-1">Fixed price ($)</label>
+                              <label className="text-xs text-mute block mb-1">Fixed price ($)</label>
                               <input
                                 className={inputCls}
                                 style={{ width: 160 }}
@@ -833,7 +833,7 @@ export default function Settings() {
                           )}
                           {s.commercialPath === "direct_step" && (
                             <div className="mt-3">
-                              <label className="text-xs text-[#6B6459] block mb-1">Message to send</label>
+                              <label className="text-xs text-mute block mb-1">Message to send</label>
                               <textarea
                                 className={inputCls}
                                 rows={2}
@@ -852,7 +852,7 @@ export default function Settings() {
                             </div>
                           )}
                           <div className="mt-3">
-                            <label className="text-xs text-[#6B6459] block mb-1">What this service is</label>
+                            <label className="text-xs text-mute block mb-1">What this service is</label>
                             <textarea
                               className={inputCls}
                               rows={2}
@@ -868,7 +868,7 @@ export default function Settings() {
                             />
                           </div>
                           <div className="mt-3">
-                            <label className="text-xs text-[#6B6459] block mb-1">Matching phrases</label>
+                            <label className="text-xs text-mute block mb-1">Matching phrases</label>
                             <input
                               className={inputCls}
                               placeholder="e.g. consult, intake, first meeting"
@@ -880,7 +880,7 @@ export default function Settings() {
                                 setState({ ...state, services });
                               }}
                             />
-                            <p className="text-xs text-[#9C9488] mt-1.5">Optional extra words the engine uses to match this service. The service name is always included.</p>
+                            <p className="text-xs text-clay mt-1.5">Optional extra words the engine uses to match this service. The service name is always included.</p>
                           </div>
                         </div>
                       ))}
@@ -892,7 +892,7 @@ export default function Settings() {
                       className={inputCls}
                       value={state.bookingTimezone}
                       onChange={(e) => setState({ ...state, bookingTimezone: e.target.value })}
-                    >
+                  >
                       <optgroup label="United States">
                         {US_TIMEZONES.map((tz) => (
                           <option key={tz.value} value={tz.value}>{tz.label}</option>
@@ -919,7 +919,7 @@ export default function Settings() {
                                 type="checkbox"
                                 checked={d.open}
                                 onChange={() => setState({ ...state, hours: { ...state.hours, [day]: { ...d, open: !d.open } } })}
-                                className="accent-[#B87333]"
+                                className="accent-coral"
                               />
                               {WEEKDAY_LABELS[day]}
                             </label>
@@ -930,7 +930,7 @@ export default function Settings() {
                               value={d.opens}
                               onChange={(e) => setState({ ...state, hours: { ...state.hours, [day]: { ...d, opens: e.target.value } } })}
                             />
-                            <span className="text-xs text-[#9C9488]">to</span>
+                            <span className="text-xs text-clay">to</span>
                             <input
                               type="time"
                               className={inputCls}
@@ -948,7 +948,7 @@ export default function Settings() {
 
               {tab === "conversation" && (
                 <div>
-                  <p className="text-sm text-[#6B6459] mb-6">Per service, the questions your engine confirms before booking.</p>
+                  <p className="text-sm text-mute mb-6">Per service, the questions your engine confirms before booking.</p>
                   <Field label="AI disclosure" hint="Shown in the chat header for the whole session. Required in CA/NY when the visitor is talking to AI.">
                     <input
                       className={inputCls}
@@ -968,14 +968,14 @@ export default function Settings() {
                       onChange={(e) => setState({ ...state, complianceDisclaimer: e.target.value })}
                     />
                   </Field>
-                  {state.services.length === 0 && <p className="text-sm text-[#9C9488]">Add a service on the Services & booking tab first.</p>}
+                  {state.services.length === 0 && <p className="text-sm text-clay">Add a service on the Services & booking tab first.</p>}
                   {state.services.map((svc) => (
                     <div key={svc.key} className="mb-5 pb-5 border-b border-[#F0EFE9] last:border-0">
                       <div className="text-sm font-semibold mb-2.5">{svc.name}</div>
                       <div className="flex flex-col gap-2">
                         {svc.questions.map((q, i) => (
                           <div key={i} className="flex items-center gap-2">
-                            <span className="text-xs text-[#9C9488] w-5 shrink-0" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{i + 1}</span>
+                            <span className="text-xs text-clay w-5 shrink-0" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{i + 1}</span>
                             <input
                               className={inputCls}
                               value={q}
@@ -988,7 +988,7 @@ export default function Settings() {
                             />
                             <X
                               size={14}
-                              className="cursor-pointer text-[#9C9488] shrink-0"
+                              className="cursor-pointer text-clay shrink-0"
                               onClick={() => {
                                 const services = state.services.map((s) =>
                                   s.key === svc.key ? { ...s, questions: s.questions.filter((_, qi) => qi !== i) } : s,
@@ -999,12 +999,12 @@ export default function Settings() {
                           </div>
                         ))}
                         <button
-                          className="text-xs font-medium text-[#B87333] flex items-center gap-1 mt-0.5 ml-7"
+                          className="text-xs font-medium text-coral flex items-center gap-1 mt-0.5 ml-7"
                           onClick={() => {
                             const services = state.services.map((s) => (s.key === svc.key ? { ...s, questions: [...s.questions, ""] } : s));
                             setState({ ...state, services });
                           }}
-                        >
+                      >
                           <Plus size={12} /> Add question
                         </button>
                       </div>
@@ -1012,17 +1012,17 @@ export default function Settings() {
                   ))}
 
                   <div className="text-sm font-semibold mt-8 mb-2 pt-6 border-t border-[#F0EFE9]">Objections</div>
-                  <p className="text-sm text-[#6B6459] mb-4">
+                  <p className="text-sm text-mute mb-4">
                     When a customer pushes back — price, timing, whether this fits their situation — the engine
                     picks the closest match below and rewords it for the moment. It never writes its own answer,
                     only yours. Leave this empty and objections are handled like any other message.
                   </p>
                   {state.objectionResponses.map((o) => (
-                    <div key={o.key} className="mb-4 p-4 rounded-xl border border-[#E7E5DE]">
+                    <div key={o.key} className="mb-4 p-4 rounded-xl border border-line">
                       <div className="flex items-start gap-2">
                         <div className="flex-1 flex flex-col gap-2.5">
                           <div>
-                            <label className="text-xs text-[#6B6459] block mb-1">What the customer is objecting to</label>
+                            <label className="text-xs text-mute block mb-1">What the customer is objecting to</label>
                             <input
                               className={inputCls}
                               placeholder="e.g. price pushback"
@@ -1032,7 +1032,7 @@ export default function Settings() {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-[#6B6459] block mb-1">Your approved response</label>
+                            <label className="text-xs text-mute block mb-1">Your approved response</label>
                             <textarea
                               className={inputCls}
                               rows={2}
@@ -1050,37 +1050,37 @@ export default function Settings() {
                         </div>
                         <X
                           size={14}
-                          className="cursor-pointer text-[#9C9488] shrink-0 mt-1"
+                          className="cursor-pointer text-clay shrink-0 mt-1"
                           onClick={() => removeObjection(o.key)}
                         />
                       </div>
                     </div>
                   ))}
                   <button
-                    className="text-xs font-medium text-[#B87333] flex items-center gap-1"
+                    className="text-xs font-medium text-coral flex items-center gap-1"
                     onClick={addObjection}
-                  >
+                >
                     <Plus size={12} /> Add objection
                   </button>
 
                   <div className="text-sm font-semibold mt-8 mb-2 pt-6 border-t border-[#F0EFE9]">Escalation</div>
-                  <p className="text-sm text-[#6B6459] mb-4">The engine never guesses past these lines — it stops and asks.</p>
+                  <p className="text-sm text-mute mb-4">The engine never guesses past these lines — it stops and asks.</p>
                   <div className="flex flex-col gap-3">
                     {ESCALATION_OPTIONS.map(([key, title, desc]) => (
                       <label
                         key={key}
                         className="flex items-start gap-3 p-4 rounded-xl border cursor-pointer"
-                        style={{ borderColor: state.escalation[key] ? "#B87333" : "#E7E5DE", backgroundColor: state.escalation[key] ? "#F5E7D6" : "#fff" }}
-                      >
+                        style={{ borderColor: state.escalation[key] ? "#FF5A36" : "#E4DCCB", backgroundColor: state.escalation[key] ? "#FFE8E1" : "#fff" }}
+                    >
                         <input
                           type="checkbox"
                           checked={state.escalation[key]}
                           onChange={() => setState({ ...state, escalation: { ...state.escalation, [key]: !state.escalation[key] } })}
-                          className="mt-0.5 accent-[#B87333]"
+                          className="mt-0.5 accent-coral"
                         />
                         <div>
                           <div className="text-sm font-medium">{title}</div>
-                          <div className="text-xs text-[#6B6459] mt-0.5">{desc}</div>
+                          <div className="text-xs text-mute mt-0.5">{desc}</div>
                         </div>
                       </label>
                     ))}
@@ -1097,12 +1097,12 @@ export default function Settings() {
                   {reporting?.test_mode_enabled && (
                     <div className="rounded-2xl border p-4 mb-5 flex flex-wrap items-center gap-x-3 gap-y-1" style={{ borderColor: "#E8CFAF", backgroundColor: "#FFF8EE" }}>
                       <span className="text-sm font-medium text-[#8A561B]">Test mode is on.</span>
-                      <span className="text-sm text-[#6B6459]">New conversations are not counted here.</span>
+                      <span className="text-sm text-mute">New conversations are not counted here.</span>
                       <button
                         type="button"
                         onClick={() => setTab("widget")}
-                        className="text-sm font-medium text-[#151515] underline"
-                      >
+                        className="text-sm font-medium text-ink underline"
+                    >
                         Change it in Install widget
                       </button>
                     </div>
@@ -1122,12 +1122,12 @@ export default function Settings() {
 
               {tab === "sms" && (
                 <div>
-                  <p className="text-sm text-[#6B6459] mb-6">
+                  <p className="text-sm text-mute mb-6">
                     Give leads a phone number that texts straight into your engine — the same qualification and
                     booking logic that runs on your website runs here too.
                   </p>
                   {smsLoading && (
-                    <div className="flex items-center gap-2 text-sm text-[#6B6459] py-6">
+                    <div className="flex items-center gap-2 text-sm text-mute py-6">
                       <Loader2 size={16} className="animate-spin" /> Checking status…
                     </div>
                   )}
@@ -1137,26 +1137,26 @@ export default function Settings() {
                     </div>
                   )}
                   {!smsLoading && smsStatus?.configured && smsStatus.phone_number && (
-                    <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ borderColor: "#E7E5DE" }}>
+                    <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ borderColor: "#E4DCCB" }}>
                       <span className="flex items-center justify-center rounded-full shrink-0" style={{ width: 36, height: 36, backgroundColor: "#E9F5EF", color: "#1E7B52" }}>
                         <MessageSquare size={16} />
                       </span>
                       <div>
                         <div className="text-sm font-medium" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{smsStatus.phone_number}</div>
-                        <div className="text-xs text-[#6B6459] mt-0.5">Texts to this number reach your engine automatically.</div>
+                        <div className="text-xs text-mute mt-0.5">Texts to this number reach your engine automatically.</div>
                       </div>
                     </div>
                   )}
                   {!smsLoading && smsStatus?.configured && !smsStatus.phone_number && (
-                    <div className="p-4 rounded-xl border border-[#E7E5DE]">
+                    <div className="p-4 rounded-xl border border-line">
                       <div className="text-sm font-medium mb-1">No number yet</div>
-                      <div className="text-xs text-[#6B6459] mb-3">Set up a dedicated SMS number for your business — this takes a few seconds.</div>
+                      <div className="text-xs text-mute mb-3">Set up a dedicated SMS number for your business — this takes a few seconds.</div>
                       <button
                         onClick={provisionSms}
                         disabled={smsProvisioning}
                         className="text-sm font-medium text-white px-4 py-2.5 rounded-lg flex items-center gap-1.5 disabled:opacity-50"
-                        style={{ backgroundColor: "#151515" }}
-                      >
+                        style={{ backgroundColor: "#0B0B0D" }}
+                    >
                         {smsProvisioning && <Loader2 size={13} className="animate-spin" />}
                         Set up SMS
                       </button>
@@ -1177,12 +1177,12 @@ export default function Settings() {
 
               {tab === "crm" && (
                 <div>
-                  <p className="text-sm text-[#6B6459] mb-6">
+                  <p className="text-sm text-mute mb-6">
                     Send a public HTTPS ping to Zapier, Make, or your CRM when a conversation becomes qualified or won.
                     The saved URL is treated as a secret and is never shown again after you save it.
                   </p>
                   {crmLoading && (
-                    <div className="flex items-center gap-2 text-sm text-[#6B6459] py-6">
+                    <div className="flex items-center gap-2 text-sm text-mute py-6">
                       <Loader2 size={16} className="animate-spin" /> Checking status…
                     </div>
                   )}
@@ -1223,8 +1223,8 @@ export default function Settings() {
                         }
                       }}
                       className="text-sm font-medium text-white px-4 py-2.5 rounded-lg disabled:opacity-50"
-                      style={{ backgroundColor: "#151515" }}
-                    >
+                      style={{ backgroundColor: "#0B0B0D" }}
+                  >
                       {crmSaving ? "Saving…" : "Save webhook"}
                     </button>
                     {crmStatus?.configured && (
@@ -1243,8 +1243,8 @@ export default function Settings() {
                             setCrmSaving(false);
                           }
                         }}
-                        className="text-sm font-medium px-4 py-2.5 rounded-lg border border-[#E7E5DE]"
-                      >
+                        className="text-sm font-medium px-4 py-2.5 rounded-lg border border-line"
+                    >
                         Remove
                       </button>
                     )}
@@ -1254,15 +1254,15 @@ export default function Settings() {
             </div>
 
             {dirty && (
-              <div className="sticky bottom-0 border-t border-[#E7E5DE] bg-white px-6 md:px-8 py-4 flex items-center justify-between gap-4">
-                <span className="text-xs text-[#6B6459]">
+              <div className="sticky bottom-0 border-t border-line bg-white px-6 md:px-8 py-4 flex items-center justify-between gap-4">
+                <span className="text-xs text-mute">
                   {saveError ?? "This won't change how existing conversations behave — only new ones."}
                 </span>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={discard} disabled={saving} className="text-sm font-medium px-4 py-2.5 rounded-lg border border-[#E7E5DE] flex items-center gap-1.5 disabled:opacity-50">
+                  <button onClick={discard} disabled={saving} className="text-sm font-medium px-4 py-2.5 rounded-lg border border-line flex items-center gap-1.5 disabled:opacity-50">
                     <RotateCcw size={13} /> Discard
                   </button>
-                  <button onClick={save} disabled={!canSave || saving} className="text-sm font-medium text-white px-5 py-2.5 rounded-lg flex items-center gap-1.5 disabled:opacity-50" style={{ backgroundColor: "#151515" }}>
+                  <button onClick={save} disabled={!canSave || saving} className="text-sm font-medium text-white px-5 py-2.5 rounded-lg flex items-center gap-1.5 disabled:opacity-50" style={{ backgroundColor: "#0B0B0D" }}>
                     {saving && <Loader2 size={13} className="animate-spin" />}
                     Save changes
                   </button>

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const script = document.currentScript;
+  const script = document.currentScript || document.querySelector("script[src*='widget.js'][data-business-id]");
   if (!script) return;
   const businessId = script.dataset.businessId;
   if (!businessId) {
@@ -29,7 +29,7 @@
   if (script.dataset.theme === "dark") root.classList.add("aibp-chat--dark");
   root.setAttribute("aria-label", "Business chat");
 
-  function wheelMark(className) {
+  function torusMark(className) {
     const namespace = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(namespace, "svg");
     svg.setAttribute("class", className);
@@ -38,36 +38,25 @@
     const ring = document.createElementNS(namespace, "circle");
     ring.setAttribute("cx", "12");
     ring.setAttribute("cy", "12");
-    ring.setAttribute("r", "8");
+    ring.setAttribute("r", "7.2");
     ring.setAttribute("fill", "none");
     ring.setAttribute("stroke", "currentColor");
-    ring.setAttribute("stroke-width", "2");
+    ring.setAttribute("stroke-width", "3.2");
     svg.append(ring);
-    // Five spokes at 72 degrees, drawn as radii from the hub -- the brand
-    // mark from docs/brand (rebrand-flywheel-summary.md). The widget shipped
-    // three FULL DIAMETERS instead, which cross at the centre and render as
-    // six spokes at 60 degrees: it reads as an asterisk, not a wheel, at
-    // launcher size. Five spokes cannot be built from diameters at all, which
-    // is how the mismatch happened. The 5-spoke form was chosen deliberately
-    // on 2026-08-14 -- the original 3-spoke wheel was changed because it
-    // matched the Mercedes-Benz composition.
-    [
-      [12, 12, 12, 4],
-      [12, 12, 19.61, 9.53],
-      [12, 12, 16.7, 18.47],
-      [12, 12, 7.3, 18.47],
-      [12, 12, 4.39, 9.53],
-    ].forEach(function (coordinates) {
-      const spoke = document.createElementNS(namespace, "line");
-      spoke.setAttribute("x1", String(coordinates[0]));
-      spoke.setAttribute("y1", String(coordinates[1]));
-      spoke.setAttribute("x2", String(coordinates[2]));
-      spoke.setAttribute("y2", String(coordinates[3]));
-      spoke.setAttribute("stroke", "currentColor");
-      spoke.setAttribute("stroke-width", "1.5");
-      spoke.setAttribute("stroke-linecap", "round");
-      svg.append(spoke);
-    });
+    const hub = document.createElementNS(namespace, "circle");
+    hub.setAttribute("cx", "12");
+    hub.setAttribute("cy", "12");
+    hub.setAttribute("r", "2.2");
+    hub.setAttribute("fill", "currentColor");
+    svg.append(hub);
+    const trail = document.createElementNS(namespace, "path");
+    trail.setAttribute("d", "M20.6 8.8 A9 9 0 0 1 21.4 13.2");
+    trail.setAttribute("fill", "none");
+    trail.setAttribute("stroke", "currentColor");
+    trail.setAttribute("stroke-width", "1.6");
+    trail.setAttribute("stroke-linecap", "round");
+    trail.setAttribute("opacity", "0.45");
+    svg.append(trail);
     return svg;
   }
 
@@ -79,7 +68,7 @@
   launcher.type = "button";
   launcher.className = "aibp-chat__launcher";
   launcher.setAttribute("aria-label", "Open chat");
-  launcher.append(wheelMark("aibp-chat__launcher-icon"));
+  launcher.append(torusMark("aibp-chat__launcher-icon"));
   const launcherDot = document.createElement("span");
   launcherDot.className = "aibp-chat__launcher-dot";
   launcherDot.setAttribute("aria-hidden", "true");
@@ -105,7 +94,7 @@
   identity.className = "aibp-chat__identity";
   const brandMark = document.createElement("span");
   brandMark.className = "aibp-chat__brand-mark";
-  brandMark.append(wheelMark("aibp-chat__brand-mark-icon"));
+  brandMark.append(torusMark("aibp-chat__brand-mark-icon"));
   const titleCopy = document.createElement("div");
   const title = document.createElement("h2");
   title.textContent = "Chat";
@@ -410,6 +399,8 @@
       return null;
     }
   }
+
+  async function restore() {
     if (!conversationToken) {
       history.replaceChildren();
       if (config) {

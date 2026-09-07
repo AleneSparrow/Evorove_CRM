@@ -3,6 +3,7 @@ import { AuthProvider } from "./auth/AuthContext";
 import { RequireActiveSubscription, RequireAuth, RequireBusiness } from "./components/RouteGuards";
 import Landing from "./pages/Landing";
 import Faq from "./pages/Faq";
+import LegalDocument from "./pages/LegalDocument";
 import LawyersLanding from "./pages/LawyersLanding";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -44,6 +45,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/faq" element={<Faq />} />
+          <Route path="/privacy" element={<LegalDocument key="privacy" docId="privacy" />} />
+          <Route path="/terms" element={<LegalDocument key="terms" docId="terms" />} />
+          <Route path="/dpa" element={<LegalDocument key="dpa" docId="dpa" />} />
+          <Route path="/subprocessors" element={<LegalDocument key="subprocessors" docId="subprocessors" />} />
           <Route path="/lawyers" element={<LawyersLanding />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />

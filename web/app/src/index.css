@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -10,6 +10,41 @@
 
 body {
   margin: 0;
+  background: #f7f1e4;
+  color: #0b0b0d;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.ev-page {
+  background: #f7f1e4;
+  color: #0b0b0d;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.ev-wordmark {
+  font-family: "Bebas Neue", Impact, sans-serif;
+  font-weight: 400;
+}
+
+.ev-display {
+  font-family: "Bebas Neue", Impact, sans-serif;
+  letter-spacing: 0.01em;
+  line-height: 0.86;
+}
+
+.ev-mark-spin {
+  animation: evSpin 9s linear infinite;
+}
+
+@keyframes evSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev-mark-spin {
+    animation: none;
+  }
 }
 
 .dna-fade {

@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useAuth, describeError } from "../auth/AuthContext";
 import { api, type OnboardingServicePayload } from "../api/client";
-import { AreaOption, Field, FlywheelMark, inputCls, ToneOption } from "../components/Shared";
+import { AreaOption, Field, EvoroveMark, inputCls, ToneOption } from "../components/Shared";
 
 /**
  * Adaptive to any business, not just a fixed vertical -- see
@@ -38,16 +38,16 @@ function ProgressRail({ current }: { current: number }) {
             <div className="flex flex-col items-center">
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors"
-                style={{ backgroundColor: done ? "#1E7B52" : active ? "#151515" : "#F1F1EF", color: done || active ? "#fff" : "#9C9488" }}
-              >
+                style={{ backgroundColor: done ? "#1E7B52" : active ? "#0B0B0D" : "#F1F1EF", color: done || active ? "#fff" : "#9A8F83" }}
+            >
                 {done ? <Check size={14} /> : <Icon size={14} />}
               </div>
               {i < OB_STEPS.length - 1 && (
-                <div className="w-px flex-1 min-h-[22px]" style={{ backgroundColor: done ? "#1E7B52" : "#E7E5DE" }} />
+                <div className="w-px flex-1 min-h-[22px]" style={{ backgroundColor: done ? "#1E7B52" : "#E4DCCB" }} />
               )}
             </div>
             <div className="pt-1.5 pb-4">
-              <div className="text-sm" style={{ color: active || done ? "#151515" : "#9C9488", fontWeight: active ? 600 : 500 }}>
+              <div className="text-sm" style={{ color: active || done ? "#0B0B0D" : "#9A8F83", fontWeight: active ? 600 : 500 }}>
                 {s.label}
               </div>
             </div>
@@ -188,26 +188,26 @@ export default function Onboarding() {
   }
 
   return (
-    <div style={{ backgroundColor: "#F5F1EA", fontFamily: "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif", color: "#151515" }} className="min-h-screen w-full">
-      <header className="border-b border-[#E7E5DE] bg-white">
+    <div className="ev-page min-h-screen w-full">
+      <header className="border-b border-line bg-white">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-white"
-              style={{ backgroundColor: "#B87333" }}
+              className="w-7 h-7 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: "#FF5A36", color: "#0B0B0D" }}
             >
-              <FlywheelMark size={16} />
+              <EvoroveMark size={16} />
             </div>
-            <span className="font-semibold text-sm" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif" }}>
+            <span className="ev-wordmark text-[20px] tracking-[0.06em]">
               {user && user.business_ids.length > 0 ? "Setting up another business" : "Setting up your Business DNA"}
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-xs text-[#9C9488]" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+            <span className="text-xs text-clay" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
               Step {step + 1} / {OB_STEPS.length}
             </span>
             {user && user.business_ids.length > 0 && !launched && (
-              <button onClick={() => navigate("/app")} className="text-xs font-medium text-[#6B6459] flex items-center gap-1">
+              <button onClick={() => navigate("/app")} className="text-xs font-medium text-mute flex items-center gap-1">
                 <X size={13} /> Cancel
               </button>
             )}
@@ -218,14 +218,14 @@ export default function Onboarding() {
       <div className="max-w-5xl mx-auto px-6 py-10 md:py-14 grid md:grid-cols-[200px_1fr] gap-10">
         <div className="hidden md:block"><ProgressRail current={step} /></div>
 
-        <div className="bg-white rounded-2xl border border-[#E7E5DE] p-6 md:p-8 min-h-[480px] flex flex-col">
+        <div className="bg-white rounded-2xl border border-line p-6 md:p-8 min-h-[480px] flex flex-col">
           {!launched ? (
             <>
               <div className="flex-1 dna-fade" key={step}>
                 {step === 0 && (
                   <>
-                    <h2 className="text-2xl mb-1.5" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>Tell us about your business</h2>
-                    <p className="text-sm text-[#6B6459] mb-7">This shapes how your engine talks to every customer — works for any kind of business.</p>
+                    <h2 className="ev-display text-4xl mb-1.5">Tell us about your business</h2>
+                    <p className="text-sm text-mute mb-7">This shapes how your engine talks to every customer — works for any kind of business.</p>
                     <Field label="Business name">
                       <input className={inputCls} placeholder="e.g. Acme Studio" value={business.name} onChange={(e) => setBusiness({ ...business, name: e.target.value })} />
                       {attemptedContinue && !business.name.trim() && <p className="text-xs mt-1.5" style={{ color: "#B4483A" }}>Give it a name to continue.</p>}
@@ -257,7 +257,7 @@ export default function Onboarding() {
                         value={business.description}
                         onChange={(e) => setBusiness({ ...business, description: e.target.value })}
                       />
-                      <p className="text-xs mt-1.5 text-[#6B6459]">
+                      <p className="text-xs mt-1.5 text-mute">
                         A sentence in plain language. It helps your engine recognise what customers are asking for when they describe it in their own words.
                       </p>
                     </Field>
@@ -273,17 +273,17 @@ export default function Onboarding() {
 
                 {step === 1 && (
                   <>
-                    <h2 className="text-2xl mb-1.5" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>What do you offer?</h2>
-                    <p className="text-sm text-[#6B6459] mb-7">
+                    <h2 className="ev-display text-4xl mb-1.5">What do you offer?</h2>
+                    <p className="text-sm text-mute mb-7">
                       Every service starts routed to you for review — nothing auto-books or auto-quotes until you turn that on later.
                     </p>
                     <div className="flex flex-wrap gap-2 mb-4">
                       {services.map((s) => (
-                        <span key={s} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-[#F1F1EF] border border-[#E7E5DE]">
-                          {s} <X size={12} className="cursor-pointer text-[#9C9488]" onClick={() => setServices(services.filter((x) => x !== s))} />
+                        <span key={s} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-[#F1F1EF] border border-line">
+                          {s} <X size={12} className="cursor-pointer text-clay" onClick={() => setServices(services.filter((x) => x !== s))} />
                         </span>
                       ))}
-                      {services.length === 0 && <span className="text-xs text-[#9C9488]">No services yet — add at least one below.</span>}
+                      {services.length === 0 && <span className="text-xs text-clay">No services yet — add at least one below.</span>}
                     </div>
                     <div className="flex gap-2">
                       <input
@@ -293,7 +293,7 @@ export default function Onboarding() {
                         onChange={(e) => setNewService(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addService())}
                       />
-                      <button type="button" onClick={addService} className="px-4 rounded-lg text-white text-sm font-medium flex items-center gap-1.5 shrink-0" style={{ backgroundColor: "#151515" }}>
+                      <button type="button" onClick={addService} className="px-4 rounded-lg text-white text-sm font-medium flex items-center gap-1.5 shrink-0" style={{ backgroundColor: "#0B0B0D" }}>
                         <Plus size={14} /> Add
                       </button>
                     </div>
@@ -303,8 +303,8 @@ export default function Onboarding() {
 
                 {step === 2 && (
                   <>
-                    <h2 className="text-2xl mb-1.5" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>Who can you serve?</h2>
-                    <p className="text-sm text-[#6B6459] mb-7">This decides which leads book automatically and which ones escalate to you instead.</p>
+                    <h2 className="ev-display text-4xl mb-1.5">Who can you serve?</h2>
+                    <p className="text-sm text-mute mb-7">This decides which leads book automatically and which ones escalate to you instead.</p>
                     <div className="grid sm:grid-cols-2 gap-3">
                       <AreaOption
                         icon={Globe}
@@ -335,15 +335,15 @@ export default function Onboarding() {
 
                 {step === 3 && (
                   <>
-                    <h2 className="text-2xl mb-1.5" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>What does it need to ask?</h2>
-                    <p className="text-sm text-[#6B6459] mb-7">Per service, the questions your engine confirms before qualifying a lead.</p>
+                    <h2 className="ev-display text-4xl mb-1.5">What does it need to ask?</h2>
+                    <p className="text-sm text-mute mb-7">Per service, the questions your engine confirms before qualifying a lead.</p>
                     {services.map((svc) => (
                       <div key={svc} className="mb-5 pb-5 border-b border-[#F0EFE9] last:border-0">
                         <div className="text-sm font-semibold mb-2.5">{svc}</div>
                         <div className="flex flex-col gap-2">
                           {(questions[svc] || DEFAULT_QUESTION_SEED).map((q, i) => (
                             <div key={i} className="flex items-center gap-2">
-                              <span className="text-xs text-[#9C9488] w-5 shrink-0" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{i + 1}</span>
+                              <span className="text-xs text-clay w-5 shrink-0" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{i + 1}</span>
                               <input
                                 className={inputCls}
                                 value={q}
@@ -357,9 +357,9 @@ export default function Onboarding() {
                           ))}
                           <button
                             type="button"
-                            className="text-xs font-medium text-[#B87333] flex items-center gap-1 mt-0.5 ml-7"
+                            className="text-xs font-medium text-coral flex items-center gap-1 mt-0.5 ml-7"
                             onClick={() => setQuestions({ ...questions, [svc]: [...(questions[svc] || DEFAULT_QUESTION_SEED), ""] })}
-                          >
+                        >
                             <Plus size={12} /> Add question
                           </button>
                         </div>
@@ -370,27 +370,27 @@ export default function Onboarding() {
 
                 {step === 4 && (
                   <>
-                    <h2 className="text-2xl mb-1.5" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>When should it hand off to you?</h2>
-                    <p className="text-sm text-[#6B6459] mb-7">The engine never guesses past these lines — it stops and asks.</p>
+                    <h2 className="ev-display text-4xl mb-1.5">When should it hand off to you?</h2>
+                    <p className="text-sm text-mute mb-7">The engine never guesses past these lines — it stops and asks.</p>
                     <div className="flex flex-col gap-3">
                       {ESCALATION_OPTIONS.map(([key, title, desc]) => (
                         <label
                           key={key}
                           className="flex items-start gap-3 p-4 rounded-xl border cursor-pointer"
                           style={{
-                            borderColor: escalation[key] ? "#B87333" : "#E7E5DE",
-                            backgroundColor: escalation[key] ? "#F5E7D6" : "#fff",
+                            borderColor: escalation[key] ? "#FF5A36" : "#E4DCCB",
+                            backgroundColor: escalation[key] ? "#FFE8E1" : "#fff",
                           }}
-                        >
+                      >
                           <input
                             type="checkbox"
                             checked={escalation[key]}
                             onChange={() => setEscalation({ ...escalation, [key]: !escalation[key] })}
-                            className="mt-0.5 accent-[#B87333]"
+                            className="mt-0.5 accent-coral"
                           />
                           <div>
                             <div className="text-sm font-medium">{title}</div>
-                            <div className="text-xs text-[#6B6459] mt-0.5">{desc}</div>
+                            <div className="text-xs text-mute mt-0.5">{desc}</div>
                           </div>
                         </label>
                       ))}
@@ -400,18 +400,18 @@ export default function Onboarding() {
 
                 {step === 5 && (
                   <>
-                    <h2 className="text-2xl mb-1.5" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>Ready to go live</h2>
-                    <p className="text-sm text-[#6B6459] mb-7">Here's the Business DNA your engine will run on.</p>
-                    <div className="rounded-xl bg-[#F5F1EA] border border-[#E7E5DE] p-5 flex flex-col gap-4 text-sm">
-                      <div className="flex justify-between"><span className="text-[#6B6459]">Business</span><span className="font-medium">{business.name || "Untitled business"} · {business.industry}</span></div>
-                      <div className="flex justify-between"><span className="text-[#6B6459]">Voice</span><span className="font-medium">{business.tone}</span></div>
-                      <div className="flex justify-between"><span className="text-[#6B6459]">Services</span><span className="font-medium text-right">{services.join(", ")}</span></div>
+                    <h2 className="ev-display text-4xl mb-1.5">Ready to go live</h2>
+                    <p className="text-sm text-mute mb-7">Here's the Business DNA your engine will run on.</p>
+                    <div className="rounded-xl bg-cream border border-line p-5 flex flex-col gap-4 text-sm">
+                      <div className="flex justify-between"><span className="text-mute">Business</span><span className="font-medium">{business.name || "Untitled business"} · {business.industry}</span></div>
+                      <div className="flex justify-between"><span className="text-mute">Voice</span><span className="font-medium">{business.tone}</span></div>
+                      <div className="flex justify-between"><span className="text-mute">Services</span><span className="font-medium text-right">{services.join(", ")}</span></div>
                       <div className="flex justify-between">
-                        <span className="text-[#6B6459]">Service area</span>
+                        <span className="text-mute">Service area</span>
                         <span className="font-medium">{areaMode === "remote" ? "Anywhere (remote)" : `${zipList.length} zip code${zipList.length === 1 ? "" : "s"}`}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-[#6B6459]">Escalates to you on</span>
+                        <span className="text-mute">Escalates to you on</span>
                         <span className="font-medium text-right">
                           {[escalation.highUrgency && "High urgency (immediately)", escalation.emergency && "Emergency"].filter(Boolean).join(", ") || "Emergencies only"}
                         </span>
@@ -434,7 +434,7 @@ export default function Onboarding() {
                   <ArrowLeft size={14} /> Back
                 </button>
                 {step < OB_STEPS.length - 1 ? (
-                  <button onClick={next} className="text-sm font-medium text-white px-5 py-2.5 rounded-lg flex items-center gap-1.5" style={{ backgroundColor: "#151515" }}>
+                  <button onClick={next} className="text-sm font-medium text-white px-5 py-2.5 rounded-lg flex items-center gap-1.5" style={{ backgroundColor: "#0B0B0D" }}>
                     Continue <ArrowRight size={14} />
                   </button>
                 ) : (
@@ -443,12 +443,11 @@ export default function Onboarding() {
                     disabled={submitting}
                     className="text-sm font-medium text-white px-5 py-2.5 rounded-lg flex items-center gap-1.5 disabled:opacity-60"
                     style={{ backgroundColor: "#1E7B52" }}
-                  >
+                >
                     {submitting ? "Launching…" : "Launch engine"}
-                    {/* The wheel as a progress indicator while the Business DNA
-                        assembles -- per the brand book's onboarding example --
-                        settling back to the static Sparkles mark once ready. */}
-                    {submitting ? <FlywheelMark size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    {/* The torus as a progress indicator while Business DNA
+                        assembles, then Sparkles once ready. */}
+                    {submitting ? <EvoroveMark size={14} className="animate-spin" /> : <Sparkles size={14} />}
                   </button>
                 )}
               </div>
@@ -458,15 +457,15 @@ export default function Onboarding() {
               <div className="w-12 h-12 rounded-full flex items-center justify-center mb-5" style={{ backgroundColor: "#E9F5EF" }}>
                 <Check size={22} color="#1E7B52" />
               </div>
-              <h2 className="text-2xl mb-2" style={{ fontFamily: "'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif", fontWeight: 600 }}>
+              <h2 className="ev-display text-4xl mb-2">
                 {business.name || "Your business"} is live.
               </h2>
-              <p className="text-sm text-[#6B6459] mb-7 max-w-sm">It's answering new leads right now, using exactly what you just set up.</p>
+              <p className="text-sm text-mute mb-7 max-w-sm">It's answering new leads right now, using exactly what you just set up.</p>
               <button
                 onClick={() => navigate("/app")}
                 className="text-sm font-medium text-white px-5 py-2.5 rounded-lg flex items-center gap-1.5"
-                style={{ backgroundColor: "#151515" }}
-              >
+                style={{ backgroundColor: "#0B0B0D" }}
+            >
                 Go to dashboard <ArrowRight size={14} />
               </button>
             </div>

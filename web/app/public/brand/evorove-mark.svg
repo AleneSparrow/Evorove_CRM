@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <!-- Pulse mark for avatars/icons: ring + hub, no motion arc. -->
+  <circle cx="12" cy="12" r="7.2" stroke="#0B0B0D" stroke-width="3.2"/>
+  <circle cx="12" cy="12" r="2.2" fill="#0B0B0D"/>
+</svg>

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { Field, inputCls } from "../components/Shared";
+import { AuthShell } from "../brand/AuthShell";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -13,8 +14,6 @@ export default function ResetPassword() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // The bearer token is needed once, never left in browser history after a
-    // completed/invalid attempt.
     if (!token) setError("This reset link is invalid or has expired.");
   }, [token]);
 
@@ -34,5 +33,22 @@ export default function ResetPassword() {
     } finally { setSubmitting(false); }
   }
 
-  return <div style={{ backgroundColor: "#F5F1EA", color: "#151515" }} className="min-h-screen flex items-center justify-center px-6"><div className="w-full max-w-sm bg-white rounded-2xl border border-[#E7E5DE] p-7"><h1 className="text-2xl mb-2">Choose a new password</h1><p className="text-sm text-[#6B6459] mb-6">This link can be used once. Other signed-in sessions will be ended.</p>{token ? <form onSubmit={submit}><Field label="New password"><input type="password" required className={inputCls} value={password} onChange={(e) => setPassword(e.target.value)} /></Field><Field label="Confirm password"><input type="password" required className={inputCls} value={confirm} onChange={(e) => setConfirm(e.target.value)} /></Field>{error && <p className="text-sm text-[#B4483A] mb-4">{error}</p>}<button disabled={submitting} className="w-full text-sm font-medium text-white px-5 py-2.5 rounded-lg disabled:opacity-60" style={{ backgroundColor: "#151515" }}>{submitting ? "Saving…" : "Set new password"}</button></form> : <Link to="/forgot-password" className="text-sm font-medium" style={{ color: "#B87333" }}>Request a new link</Link>}</div></div>;
+  return (
+    <AuthShell>
+      <div className="bg-white rounded-2xl border border-line p-7">
+        <h1 className="ev-display text-5xl mb-2">Choose a new password</h1>
+        <p className="text-sm text-mute mb-6">This link can be used once. Other signed-in sessions will be ended.</p>
+        {token ? (
+          <form onSubmit={submit}>
+            <Field label="New password"><input type="password" required className={inputCls} value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
+            <Field label="Confirm password"><input type="password" required className={inputCls} value={confirm} onChange={(e) => setConfirm(e.target.value)} /></Field>
+            {error && <p className="text-sm text-[#B4483A] mb-4">{error}</p>}
+            <button disabled={submitting} className="w-full text-sm font-medium px-5 py-2.5 rounded-full disabled:opacity-60" style={{ backgroundColor: "#0B0B0D", color: "#F7F1E4" }}>{submitting ? "Saving…" : "Set new password"}</button>
+          </form>
+        ) : (
+          <Link to="/forgot-password" className="text-sm font-medium" style={{ color: "#FF5A36" }}>Request a new link</Link>
+        )}
+      </div>
+    </AuthShell>
+  );
 }
