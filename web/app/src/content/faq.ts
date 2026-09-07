@@ -3,8 +3,8 @@
  * duplicating (or drifting from) the homepage section. */
 export const FAQ_ITEMS: { q: string; a: string }[] = [
   {
-    q: "Does this bring me new customers?",
-    a: "No. Evorove works the inquiries you already get — from your website, your ads, your referrals. Finding new leads is a different problem and we don't claim to solve it.",
+    q: "Does this find new people for me?",
+    a: "No. This desk books people who are already ready. Finding them and selling until they agree is a different cycle — not this CRM, and not a search box in here.",
   },
   {
     q: "Does it take payment from my customer?",

@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { MarketingFooter, MarketingHeader } from "../brand/MarketingChrome";
-import { brand } from "../brand/theme";
+import { brand, DOCUMENT_TITLE } from "../brand/theme";
 import {
   LEGAL_DOCS,
   LEGAL_NAV,
@@ -90,7 +90,7 @@ export default function LegalDocument({ docId }: { docId: LegalDocId }) {
     document.title = `${doc.eyebrow} · Evorove`;
     window.scrollTo(0, 0);
     return () => {
-      document.title = "Evorove — every lead. no dead air.";
+      document.title = DOCUMENT_TITLE;
     };
   }, [docId, doc.eyebrow]);
 

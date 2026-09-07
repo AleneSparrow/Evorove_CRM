@@ -6,6 +6,7 @@ import { describeError, useAuth } from "../auth/AuthContext";
 import { AccountSecurityPanel } from "../components/AccountSecurityPanel";
 import { Field, inputCls } from "../components/Shared";
 import { Sidebar } from "../components/Sidebar";
+import { DOCUMENT_TITLE } from "../brand/theme";
 
 export default function Account() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function Account() {
   useEffect(() => {
     document.title = "Account · Evorove";
     return () => {
-      document.title = "Evorove — every lead. no dead air.";
+      document.title = DOCUMENT_TITLE;
     };
   }, []);
 

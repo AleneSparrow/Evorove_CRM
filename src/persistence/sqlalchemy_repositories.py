@@ -1860,6 +1860,24 @@ class SQLAlchemyBookingRepository:
             statement = statement.where(BookingRow.id != exclude_booking_id)
         return tuple(self._to_domain(row) for row in self.session.scalars(statement))
 
+    def list_starting_between(
+        self,
+        business_id: str,
+        start_at: datetime,
+        end_at: datetime,
+    ) -> tuple[Booking, ...]:
+        statement = (
+            select(BookingRow)
+            .where(
+                BookingRow.business_id == business_id,
+                BookingRow.status.in_(self.ACTIVE_STATUSES),
+                BookingRow.start_at >= start_at,
+                BookingRow.start_at < end_at,
+            )
+            .order_by(BookingRow.start_at.asc())
+        )
+        return tuple(self._to_domain(row) for row in self.session.scalars(statement))
+
     def save(self, booking: Booking, expected_version: int) -> None:
         new_version = expected_version + 1
         result = self.session.execute(

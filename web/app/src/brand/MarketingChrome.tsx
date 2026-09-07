@@ -11,7 +11,7 @@ export function MarketingHeader({
   ctaLabel,
   links = [
     { href: "/#how", label: "Cycle" },
-    { href: "/#features", label: "Engine" },
+    { href: "/#features", label: "Desk" },
     { href: "/#trust", label: "Audit" },
     { href: "/faq", label: "FAQ" },
   ],

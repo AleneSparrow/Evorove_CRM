@@ -1,6 +1,6 @@
 # Evorove CRM
 
-Evorove CRM is the operational snapshot of the case pipeline: leads, qualification, booking or quoting, follow-up, payment requests, staff conversations, and tenant **Business DNA**. Sales-conversation automation (discovery, objections, commitment) lives in the sister repo [Evorove](https://github.com/AleneSparrow/Evorove), not here.
+Evorove CRM is cycle 3 of one product: accept an already-hot person, collect what the service needs, and put a specific hour on the calendar. The evening screen is tomorrow's appointments — not a funnel to close. Sales conversation lives in the sister repo [Evorove](https://github.com/AleneSparrow/Evorove). Finding people lives in `evorove_lead`. Do not add either here.
 
 See [SNAPSHOT.md](SNAPSHOT.md) for the split date and what was copied.
 
@@ -224,6 +224,12 @@ Every tenant-owned repository lookup requires `business_id`, and composite forei
 
 ## Next milestone
 
-The public rate limiter is shared across workers via PostgreSQL (`rate_limit_hits`). CRM webhook delivery and conversational SMS replies use a durable `integration_outbox` row plus `POST /api/v1/internal/integrations/deliver`. Inbound SMS threads show up on Conversations; a staff reply on an `sms` conversation is delivered through the same outbox. Real calendar synchronization and collection of a customer's payment remain deferred.
+Cycle 3 receive and the evening screen are in place: `POST /hot-leads` accepts a
+ready-to-book person without setting an hour; `/app` lists tomorrow's appointments.
+Live glue from Evorove, real calendar synchronization, and collection of a
+customer's payment remain deferred. Do not delete booking from the sales repo
+until the handoff is live.
+
+The public rate limiter is shared across workers via PostgreSQL (`rate_limit_hits`). CRM webhook delivery and conversational SMS replies use a durable `integration_outbox` row plus `POST /api/v1/internal/integrations/deliver`. Inbound SMS threads show up on Conversations; a staff reply on an `sms` conversation is delivered through the same outbox.
 
 SMS follow-up already has its own attempt table. Twilio's Messages API has no client-supplied idempotency key, so a crash between Twilio confirming dispatch and the outbox mark can still duplicate one message.

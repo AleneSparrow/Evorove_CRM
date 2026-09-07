@@ -82,8 +82,9 @@ export default function LawyersLanding() {
           The AI intake assistant that legally can't overstep.
         </h1>
         <p className="text-base md:text-lg text-mute leading-relaxed mb-8 max-w-2xl mx-auto">
-          Evorove answers and qualifies every lead for your practice, 24/7 — built so the AI can only
-          follow the script you approve. Not a policy. An architecture.
+          Evorove CRM books the hour for a client who is already ready — zone, forms, a real slot.
+          Finding people and selling until they agree lives in the rest of Evorove, not on this desk.
+          The AI cannot invent a price or an unapproved slot.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button

@@ -4,7 +4,6 @@ import { RequireActiveSubscription, RequireAuth, RequireBusiness } from "./compo
 import Landing from "./pages/Landing";
 import Faq from "./pages/Faq";
 import LegalDocument from "./pages/LegalDocument";
-import LawyersLanding from "./pages/LawyersLanding";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -17,7 +16,7 @@ import Billing from "./pages/Billing";
 import Account from "./pages/Account";
 import AppFaq from "./pages/AppFaq";
 
-/** Shared layout element for every subscription-gated route (Overview,
+/** Shared layout element for every subscription-gated route (Tomorrow,
  * Conversations). Previously /app and /app/conversations each had their
  * own <RequireActiveSubscription>, so switching between those two tabs
  * unmounted and remounted the guard on every click -- flashing a
@@ -49,7 +48,7 @@ export default function App() {
           <Route path="/terms" element={<LegalDocument key="terms" docId="terms" />} />
           <Route path="/dpa" element={<LegalDocument key="dpa" docId="dpa" />} />
           <Route path="/subprocessors" element={<LegalDocument key="subprocessors" docId="subprocessors" />} />
-          <Route path="/lawyers" element={<LawyersLanding />} />
+          <Route path="/lawyers" element={<Navigate to="/" replace />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

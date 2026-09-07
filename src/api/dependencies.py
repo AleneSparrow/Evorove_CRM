@@ -21,6 +21,7 @@ from src.persistence.auth_service import AuthService, SessionInvalidError
 from src.persistence.password_reset_email import PasswordResetEmailSender
 from src.persistence.billing_service import BillingService
 from src.persistence.business_provisioning_service import BusinessProvisioningService
+from src.persistence.hot_lead_handoff import PersistentHotLeadHandoffService
 from src.persistence.lead_intake import PersistentLeadIntakeService
 from src.persistence.conversation_service import ConversationService
 from src.persistence.business_dna_settings_service import BusinessDNASettingsService
@@ -119,6 +120,12 @@ def get_intake_service(
         reassurance_response_generator=container.reassurance_response_generator,
         universal_reassurance_response_generator=container.universal_reassurance_response_generator,
     )
+
+
+def get_hot_lead_handoff_service(
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+) -> PersistentHotLeadHandoffService:
+    return PersistentHotLeadHandoffService(container.unit_of_work_factory)
 
 
 def get_conversation_service(

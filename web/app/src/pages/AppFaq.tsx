@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { FaqList } from "../components/FaqSection";
 import { Sidebar } from "../components/Sidebar";
+import { DOCUMENT_TITLE } from "../brand/theme";
 
 /** In-app FAQ, separate from the personal account and from the public /faq page. */
 export default function AppFaq() {
   useEffect(() => {
     document.title = "FAQ · Evorove";
     return () => {
-      document.title = "Evorove — every lead. no dead air.";
+      document.title = DOCUMENT_TITLE;
     };
   }, []);
 

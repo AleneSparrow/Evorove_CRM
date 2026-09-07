@@ -1,15 +1,14 @@
-"""Staff-facing dashboard API: real cases, conversations, audit trail, and
-the reply/resolve actions for a case that needs a human (Milestone 8 slice 2
-and its follow-up). Every endpoint is scoped to the authenticated staff
-user's own business via `require_own_business` — no cross-tenant reads or
-actions are possible even with a valid session token for a different
-business.
+"""Staff-facing dashboard API: tomorrow's appointments, then cases and conversations.
+
+The evening screen is booked hours, not a funnel of people to close.
+Every endpoint is scoped to the authenticated staff user's own business.
 """
 
 from collections.abc import Mapping
 from datetime import date, datetime, time, timedelta, timezone
 from statistics import median
 from typing import Annotated
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, Depends, Query, status
 
@@ -28,6 +27,8 @@ from ..dependencies import (
 )
 from ..errors import RequestDataError, ResourceNotFoundError
 from ..schemas import (
+    DashboardAppointmentListResponse,
+    DashboardAppointmentSchema,
     DashboardCaseDetailResponse,
     DashboardCaseListResponse,
     DashboardCaseSummarySchema,
@@ -35,6 +36,7 @@ from ..schemas import (
     DashboardConversationDetailResponse,
     DashboardConversationListResponse,
     DashboardConversationSchema,
+    DashboardLeadSchema,
     DashboardMessageSchema,
     EscalationFeedbackRequest,
     ReportingSettingsSchema,
@@ -53,6 +55,60 @@ router = APIRouter(
     tags=["dashboard"],
     dependencies=[Depends(require_active_subscription)],
 )
+
+
+@router.get("/appointments", response_model=DashboardAppointmentListResponse)
+def list_appointments(
+    business_id: BusinessIdPath,
+    user: Annotated[StaffUser, Depends(require_own_business)],
+    unit_of_work_factory: Annotated[UnitOfWorkFactory, Depends(get_unit_of_work_factory)],
+    on: Annotated[
+        date | None,
+        Query(description="Local calendar day in the business timezone. Defaults to tomorrow."),
+    ] = None,
+    include_test: bool = False,
+) -> DashboardAppointmentListResponse:
+    with unit_of_work_factory() as unit_of_work:
+        business = unit_of_work.businesses.get(business_id)
+        if business is None:
+            raise ResourceNotFoundError("business_not_found", "Business was not found")
+        dna = unit_of_work.business_dna.get_active(business_id)
+        configuration = dna.configuration if dna is not None else {}
+        zone_name, zone = _business_zone(configuration)
+        day = on or _tomorrow_local(utc_now(), zone)
+        start_at, end_at = _local_day_bounds(zone, day)
+        bookings = unit_of_work.bookings.list_starting_between(business_id, start_at, end_at)
+        service_names = {
+            str(service["id"]): str(service["name"])
+            for service in (configuration.get("services", ()) if isinstance(configuration, Mapping) else ())
+            if isinstance(service, Mapping) and service.get("id") and service.get("name")
+        }
+        appointments = []
+        for booking in bookings:
+            case = unit_of_work.cases.get(business_id, booking.case_id)
+            if case is not None and case.is_test and not include_test:
+                continue
+            lead = unit_of_work.leads.get(business_id, booking.lead_id)
+            if lead is None:
+                continue
+            appointments.append(
+                DashboardAppointmentSchema(
+                    booking_id=booking.booking_id,
+                    case_id=booking.case_id,
+                    lead=DashboardLeadSchema.from_domain(lead),
+                    service_id=booking.service_id,
+                    service_name=service_names.get(booking.service_id),
+                    start_at=booking.start_at,
+                    end_at=booking.end_at,
+                    timezone=booking.timezone or zone_name,
+                    status=booking.status.value,
+                )
+            )
+    return DashboardAppointmentListResponse(
+        day=day,
+        timezone=zone_name,
+        appointments=tuple(appointments),
+    )
 
 
 @router.get("/cases", response_model=DashboardCaseListResponse)
@@ -254,6 +310,31 @@ def update_reporting_settings(
         )
         unit_of_work.commit()
         return ReportingSettingsSchema.from_domain(business)
+
+
+def _business_zone(configuration: Mapping[str, object] | object) -> tuple[str, ZoneInfo]:
+    name = "America/Chicago"
+    if isinstance(configuration, Mapping):
+        booking = configuration.get("booking")
+        business = configuration.get("business")
+        if isinstance(booking, Mapping) and booking.get("timezone"):
+            name = str(booking["timezone"])
+        elif isinstance(business, Mapping) and business.get("timezone"):
+            name = str(business["timezone"])
+    try:
+        return name, ZoneInfo(name)
+    except ZoneInfoNotFoundError:
+        return "America/Chicago", ZoneInfo("America/Chicago")
+
+
+def _tomorrow_local(now: datetime, zone: ZoneInfo) -> date:
+    return now.astimezone(zone).date() + timedelta(days=1)
+
+
+def _local_day_bounds(zone: ZoneInfo, day: date) -> tuple[datetime, datetime]:
+    start = datetime.combine(day, time.min, tzinfo=zone).astimezone(timezone.utc)
+    end = datetime.combine(day + timedelta(days=1), time.min, tzinfo=zone).astimezone(timezone.utc)
+    return start, end
 
 
 def _analytics_period(

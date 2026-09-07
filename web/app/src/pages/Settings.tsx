@@ -6,7 +6,6 @@ import { AreaOption, Field, formatRelativeTime, inputCls, ToneOption } from "../
 import { useAuth, describeError } from "../auth/AuthContext";
 import { API_BASE, api, type BusinessDNASettings, type CommercialPath, type CrmWebhookStatus, type ReportingSettings, type SmsStatus } from "../api/client";
 import { StatisticsPanel } from "../components/StatisticsPanel";
-import { SalesPlaybookSettings } from "../components/SalesPlaybookSettings";
 
 // Grouped by the task a business owner actually has, not by which Business
 // DNA schema section a field happens to live in -- "Services" and "Booking"
@@ -16,16 +15,15 @@ import { SalesPlaybookSettings } from "../components/SalesPlaybookSettings";
 // "how the engine should handle the conversation." Four stops instead of
 // seven the owner has to click through to find anything.
 const SETTINGS_TABS = [
-  { key: "widget", label: "Install widget" },
-  { key: "basics", label: "Basics" },
   { key: "services", label: "Services & booking" },
+  { key: "basics", label: "Basics" },
   { key: "conversation", label: "Conversation" },
-  { key: "playbook", label: "Sales Playbook" },
+  { key: "sms", label: "SMS" },
+  { key: "widget", label: "Website chat" },
   // The key stays "reporting" so existing ?tab=reporting links keep working;
   // only what the owner reads changes. The tab holds actions on the numbers,
   // and "Statistics" says that where "Reporting" did not.
   { key: "reporting", label: "Statistics" },
-  { key: "sms", label: "SMS" },
   { key: "crm", label: "CRM" },
 ] as const;
 
@@ -235,7 +233,7 @@ export default function Settings() {
   // instead of always resetting to "business".
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const tab: TabKey = isTabKey(tabParam) ? tabParam : "widget";
+  const tab: TabKey = isTabKey(tabParam) ? tabParam : "services";
   const setTab = (next: TabKey) => {
     setSearchParams((prev) => {
       const params = new URLSearchParams(prev);
@@ -536,7 +534,7 @@ export default function Settings() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/app")}
-              aria-label="Back to Overview"
+              aria-label="Back to Tomorrow"
               className="md:hidden -ml-1.5 p-1.5 rounded-lg shrink-0"
               style={{ color: "#6B6459" }}
           >
@@ -617,9 +615,9 @@ export default function Settings() {
                         <MessageSquare size={18} />
                       </span>
                       <div>
-                        <h2 className="text-lg font-semibold">Put Evorove on your website</h2>
+                        <h2 className="text-lg font-semibold">Website chat for a ready person</h2>
                         <p className="text-sm text-mute mt-1 leading-relaxed">
-                          Copy this code and paste it into your website just before <code>&lt;/body&gt;</code>. Once published, customers can start a conversation from any page.
+                          This snippet is a channel for someone who is already ready to book — collecting the last details and confirming the hour. It does not find people and it does not start a sale.
                         </p>
                       </div>
                     </div>
@@ -660,7 +658,7 @@ export default function Settings() {
                   <div className="rounded-2xl border p-5 mt-5" style={{ borderColor: "#E4DCCB" }}>
                     <h2 className="text-base font-semibold">Test mode</h2>
                     <p className="text-sm text-mute mt-1 leading-relaxed">
-                      Keep this on while you test your widget. New conversations stay fully visible in your audit trail, but do not affect your statistics until you go live.
+                      Keep this on while you test website chat. New conversations stay fully visible in your audit trail, but do not affect your statistics until you go live.
                     </p>
                     <label className="flex items-start gap-3 mt-5 cursor-pointer">
                       <input
@@ -1088,10 +1086,6 @@ export default function Settings() {
                 </div>
               )}
 
-              {tab === "playbook" && token && businessId && (
-                <SalesPlaybookSettings token={token} businessId={businessId} />
-              )}
-
               {tab === "reporting" && (
                 <div>
                   {reporting?.test_mode_enabled && (
@@ -1103,7 +1097,7 @@ export default function Settings() {
                         onClick={() => setTab("widget")}
                         className="text-sm font-medium text-ink underline"
                     >
-                        Change it in Install widget
+                        Change it in Website chat
                       </button>
                     </div>
                   )}

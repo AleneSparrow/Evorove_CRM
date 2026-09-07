@@ -27,6 +27,8 @@ describe("legal documents", () => {
     assert.doesNotMatch(all, /\b96%/);
     assert.doesNotMatch(all, /chatbot/i);
     assert.doesNotMatch(all, /cold lead/i);
+    assert.match(terms, /booking desk for a person who is already ready/i);
+    assert.doesNotMatch(all, /does not generate leads/i);
   });
 
   it("lists the processors the product actually uses", () => {

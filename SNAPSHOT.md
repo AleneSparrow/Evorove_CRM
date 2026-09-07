@@ -5,34 +5,33 @@ Copied on 6 September 2026 from the main engine at `main` (`bc6f38a`).
 GitHub: https://github.com/AleneSparrow/Evorove_CRM  
 Local: `/Users/alenakulish/dev/evorove-crm`
 
-This is the operational CRM: cases, leads, qualification as configured fields and policy checks, booking, quoting, follow-up SMS, staff conversations, Business DNA, billing, and audit.
+This repository is cycle 3 of one product: accept an already-hot person, collect
+what the service needs, and put a specific hour on the calendar. The evening
+screen is tomorrow's appointments.
 
 `ProcessState` is the case pipeline, not a sales conversation method:
 
 `NEW_LEAD → CONTACTED → QUALIFYING → QUALIFIED → BOOKED/QUOTED → FOLLOW_UP → WON → PAID → COMPLETED`
 
-## Sister project
+Handoff contract: [`docs/hot-lead-handoff.md`](docs/hot-lead-handoff.md).
 
-Sales-process automation stays in `/Users/alenakulish/dev/evorove` (`AleneSparrow/Evorove`). That repo owns greeting, discovery, needs, presentation, objections, commitment, and then an allowed booking or quote. Do not retarget this CRM repo at that sales-stage engine.
+## Sister projects
 
-## Website copy — 7 September 2026
+- `/Users/alenakulish/dev/evorove_lead` — cycle 1, find a fitting person with a reason. Not here.
+- `/Users/alenakulish/dev/evorove` — cycle 2, sell until ready to book. Do not retarget this CRM at that sales-stage engine.
 
-The public Pulse site from `/Users/alenakulish/dev/evorove` was copied here so CRM keeps the current marketing surface (intake → qualify → book, audit, Business DNA). Sales-engine copy will be rewritten in the sister repo; this snapshot stays the CRM site.
+## Foundation alignment — slice C, 7 September 2026
 
-Copied:
+The public site from the split still exists as cabinet chrome, legal pages, and
+auth. It is no longer a selling landing for inquiry → qualify → book, a lawyers
+GTM page, or a sales playbook desk.
 
-- landing, lawyers landing, FAQ, legal pages (`/privacy`, `/terms`, `/dpa`, `/subprocessors`)
-- Pulse brand (`web/app/src/brand`, `web/app/src/index.css`, `tailwind.config.js`, `index.html`)
-- public brand assets and Cloudflare Pages `_redirects`
-- auth chrome (signup / login / forgot / reset)
-- staff cabinet Pulse chrome (sidebar, dashboard, conversations, settings, onboarding, account, billing, FAQ)
-- embeddable chat widget
-- Three.js landing dependencies in `web/app/package.json`
+- Receive path: `POST /api/v1/businesses/{business_id}/hot-leads`
+- Evening screen: `/app` lists tomorrow's confirmed hours
+- `/lawyers` redirects home; sales playbook is not a Settings tab
 
-Not copied: `.env` / `.env.local`, `wrangler.web.toml` (production `evorove.com` routes stay on the sales-engine deploy), sales-knowledge import / shadow-eval API client and the newer sales-playbook UI from the sales-engine branch.
+Widget/SMS remain operational channels for collecting fields and confirming an
+hour. They are not lead generation.
 
-## Not copied (original snapshot)
-
-- Secrets and `.env`
-- Uncommitted working-tree files from the sales-engine branch
-- Commits after `main` on `feature/sales-prompts-claude`
+Live handoff from Evorove is not wired yet. Do not delete booking from the
+sales repo until that glue exists.

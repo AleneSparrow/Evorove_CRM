@@ -210,7 +210,7 @@ function MobileNav({
                 </button>
               </div>
               <nav className="flex flex-col gap-1">
-                <NavItem icon={LayoutGrid} label="Overview" to="/app" end onClick={() => setOpen(false)} />
+                <NavItem icon={LayoutGrid} label="Tomorrow" to="/app" end onClick={() => setOpen(false)} />
                 <NavItem icon={MessageSquare} label="Conversations" to="/app/conversations" onClick={() => setOpen(false)} />
                 <NavItem icon={Workflow} label="Settings" to="/app/settings" onClick={() => setOpen(false)} />
                 <NavItem icon={CreditCard} label="Billing" to="/app/billing" onClick={() => setOpen(false)} />
@@ -320,7 +320,7 @@ export function Sidebar() {
             </div>
           </div>
           <nav className="flex flex-col gap-1">
-            <NavItem icon={LayoutGrid} label="Overview" to="/app" end />
+            <NavItem icon={LayoutGrid} label="Tomorrow" to="/app" end />
             <NavItem icon={MessageSquare} label="Conversations" to="/app/conversations" />
             <NavItem icon={Workflow} label="Settings" to="/app/settings" />
             <NavItem icon={CreditCard} label="Billing" to="/app/billing" />

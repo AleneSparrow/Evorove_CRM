@@ -1,6 +1,6 @@
 /** Public legal copy for /privacy, /terms, /dpa, and /subprocessors.
  * Customer-facing English. Keep claims aligned with the product: we store
- * inquiry-to-deal records; we do not train a foundation model on them. */
+ * booking records; we do not train a foundation model on them. */
 
 export const LEGAL_CONTACT_EMAIL = "privacy@evorove.com";
 export const LEGAL_UPDATED = "September 7, 2026";
@@ -41,7 +41,7 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
     eyebrow: "Privacy Policy",
     title: "How Evorove handles information",
     summary:
-      "This policy describes how the operator of Evorove (“Evorove,” “we,” “us”) collects, uses, and shares information when you visit evorove.com, create an account, or use the inquiry-to-deal engine. Paid subscriptions are billed by Lemon Squeezy as merchant of record. We do not sell personal information. We do not use your conversations to train a foundation model.",
+      "This policy describes how the operator of Evorove (“Evorove,” “we,” “us”) collects, uses, and shares information when you visit evorove.com, create an account, or use the booking desk. Paid subscriptions are billed by Lemon Squeezy as merchant of record. We do not sell personal information. We do not use your conversations to train a foundation model.",
     sections: [
       {
         id: "who",
@@ -95,7 +95,7 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
           {
             type: "ul",
             items: [
-              "Provide the Service: qualify the inquiry, choose the next allowed step, send approved wording, book or quote when your rules allow it, follow up, and hand off to a person.",
+              "Provide the Service: accept a ready person, collect required service fields, book or quote when your rules allow it, follow up on the case, and hand off to a person only for STOP, emergency, identity, or policy risk.",
               "Secure the account: authentication, rate limits, abuse prevention, and audit trails.",
               "Bill the account through Lemon Squeezy.",
               "Improve the engine without training a model: logs, evals, prompt and policy review, and staff-reviewed shadow comparisons. That work uses operational records. It does not fine-tune or train a foundation model on your content.",
@@ -248,14 +248,14 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
         blocks: [
           {
             type: "p",
-            text: "Evorove is an inquiry-to-deal engine. It carries an inbound lead through qualification, follow-up, and a booked job or accepted quote, using rules you configure as Business DNA. A language model may rephrase an already chosen step. It does not invent your prices, discounts, legal advice, or guarantees.",
+            text: "Evorove CRM is the booking desk for a person who is already ready. It collects what the service needs and sets a specific hour or quote, using rules you configure as Business DNA. A language model may rephrase an already chosen step. It does not invent your prices, discounts, legal advice, or guarantees.",
           },
           {
             type: "ul",
             items: [
-              "The Service does not generate new leads or run ads for you.",
+              "The Service does not search for people or run ads for you. Finding and selling until someone is ready lives outside this CRM.",
               "The Service does not collect payment from your end customer. A payment request in the product is a record, not a charge.",
-              "We do not promise you a conversion rate. Closing a qualified inquiry is the job the product is built to do; the percentage you see in your own account is not a guarantee we make to you.",
+              "We do not promise you a conversion rate. Setting the hour for someone already ready is the job this CRM is built to do; the percentage you see in your own account is not a guarantee we make to you.",
             ],
           },
         ],
@@ -430,7 +430,7 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
         blocks: [
           {
             type: "p",
-            text: "Subject matter: hosting and running inquiry-to-deal conversations for your business. Duration: the term of your account plus the short retention window in the Privacy Policy. Nature: storage, structured extraction, routing, messaging, audit, and constrained language-model calls. Types of data: identifiers and contact details the end customer or you supply, message content, location as ZIP when collected, service and qualification answers, SMS consent and suppression, booking and quote records. Data subjects: your end customers and, as needed, your staff users.",
+            text: "Subject matter: hosting and running booking and quote conversations for an already-ready customer. Duration: the term of your account plus the short retention window in the Privacy Policy. Nature: storage, structured extraction, routing, messaging, audit, and constrained language-model calls. Types of data: identifiers and contact details the end customer or you supply, message content, location as ZIP when collected, service and qualification answers, SMS consent and suppression, booking and quote records. Data subjects: your end customers and, as needed, your staff users.",
           },
         ],
       },

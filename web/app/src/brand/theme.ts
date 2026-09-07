@@ -1,5 +1,5 @@
 export const PRODUCT_NAME = "Evorove";
-export const DOCUMENT_TITLE = "Evorove — every lead. no dead air.";
+export const DOCUMENT_TITLE = "Evorove CRM — tomorrow is booked.";
 
 /** Pulse visual system. Import this object (or the Tailwind aliases of the
  * same hexes) instead of inventing new colors in screens. */

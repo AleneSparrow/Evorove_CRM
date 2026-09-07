@@ -1,7 +1,7 @@
 """Pydantic request and response contracts for API v1."""
 
 from collections.abc import Mapping
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Any, Literal
 
@@ -75,6 +75,77 @@ class IncomingMessageRequest(ApiModel):
     @classmethod
     def normalize_email(cls, value: str | None) -> str | None:
         return LeadIntakeService._normalize_email(value)
+
+
+class HotLeadIdentityRequest(ApiModel):
+    name: Annotated[str | None, Field(min_length=1, max_length=255)] = None
+    phone: Annotated[str | None, Field(min_length=1, max_length=64)] = None
+    email: Annotated[str | None, Field(min_length=1, max_length=320)] = None
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if any(character not in "+-(). 0123456789" for character in value):
+            raise ValueError("phone contains unsupported characters")
+        LeadIntakeService._normalize_phone(value)
+        return value
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str | None) -> str | None:
+        return LeadIntakeService._normalize_email(value)
+
+    @model_validator(mode="after")
+    def require_addressable_identity(self) -> "HotLeadIdentityRequest":
+        if not self.phone and not self.email:
+            raise ValueError("A hot lead must already be addressable by phone or email")
+        return self
+
+
+class HotLeadReadinessRequest(ApiModel):
+    evidence_excerpt: Annotated[str, Field(min_length=1, max_length=4_000)]
+    signal: Literal["ready_to_book"] = "ready_to_book"
+
+
+class HotLeadHandoffRequest(ApiModel):
+    """Receive contract from Evorove: a person ready to book, not a calendar slot."""
+
+    handoff_id: Annotated[str, Field(min_length=1, max_length=255)]
+    channel: Literal["sms", "web_chat", "email"]
+    identity: HotLeadIdentityRequest
+    service_id: Annotated[str, Field(min_length=1, max_length=128)]
+    readiness: HotLeadReadinessRequest
+    source: Literal["evorove"] = "evorove"
+    schema_version: Literal["1"] = "1"
+    sales_profile_snapshot: dict[str, Any] = Field(default_factory=dict)
+    customer_location: Annotated[str | None, Field(min_length=1, max_length=64)] = None
+
+    @field_validator("handoff_id")
+    @classmethod
+    def validate_handoff_id(cls, value: str) -> str:
+        if any(character.isspace() or ord(character) < 32 or ord(character) == 127 for character in value):
+            raise ValueError("handoff_id must not contain whitespace or control characters")
+        return value
+
+    @model_validator(mode="after")
+    def reject_calendar_fields_in_snapshot(self) -> "HotLeadHandoffRequest":
+        forbidden = {"slot_start_at", "start_at", "booking_id", "end_at"}
+        if forbidden.intersection(self.sales_profile_snapshot):
+            raise ValueError("sales_profile_snapshot must not include a calendar slot")
+        return self
+
+
+class HotLeadHandoffResponse(ApiModel):
+    business_id: str
+    case_id: str
+    lead_id: str
+    current_state: ProcessState
+    service_id: str
+    waiting_channel: str
+    duplicate: bool
+    booking_id: None = None
 
 
 class CustomerResponseSchema(ApiModel):
@@ -814,6 +885,24 @@ class DashboardCaseSummarySchema(ApiModel):
 
 class DashboardCaseListResponse(ApiModel):
     cases: tuple[DashboardCaseSummarySchema, ...]
+
+
+class DashboardAppointmentSchema(ApiModel):
+    booking_id: str
+    case_id: str
+    lead: DashboardLeadSchema
+    service_id: str
+    service_name: str | None
+    start_at: datetime
+    end_at: datetime
+    timezone: str
+    status: str
+
+
+class DashboardAppointmentListResponse(ApiModel):
+    day: date
+    timezone: str
+    appointments: tuple[DashboardAppointmentSchema, ...]
 
 
 class DashboardAnalyticsSchema(ApiModel):

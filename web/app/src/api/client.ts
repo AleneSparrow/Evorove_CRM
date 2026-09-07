@@ -219,6 +219,24 @@ export interface DashboardCaseListResponse {
   cases: DashboardCaseSummary[];
 }
 
+export interface DashboardAppointment {
+  booking_id: string;
+  case_id: string;
+  lead: DashboardLead;
+  service_id: string;
+  service_name: string | null;
+  start_at: string;
+  end_at: string;
+  timezone: string;
+  status: string;
+}
+
+export interface DashboardAppointmentListResponse {
+  day: string;
+  timezone: string;
+  appointments: DashboardAppointment[];
+}
+
 export interface DashboardAnalytics {
   total_cases: number;
   booked_cases: number;
@@ -628,6 +646,17 @@ export const api = {
     if (options?.ignoreBaseline) params.set("ignore_baseline", "true");
     const query = params.size ? `?${params}` : "";
     return request<DashboardCaseListResponse>(`/api/v1/businesses/${businessId}/cases${query}`, { method: "GET" }, token);
+  },
+
+  listAppointments: (token: string, businessId: string, on?: string) => {
+    const params = new URLSearchParams();
+    if (on) params.set("on", on);
+    const query = params.size ? `?${params}` : "";
+    return request<DashboardAppointmentListResponse>(
+      `/api/v1/businesses/${businessId}/appointments${query}`,
+      { method: "GET" },
+      token,
+    );
   },
 
   getDashboardAnalytics: (

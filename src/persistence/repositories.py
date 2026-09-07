@@ -274,6 +274,12 @@ class BookingRepository(Protocol):
         *,
         exclude_booking_id: str | None = None,
     ) -> tuple[Booking, ...]: ...
+    def list_starting_between(
+        self,
+        business_id: str,
+        start_at: datetime,
+        end_at: datetime,
+    ) -> tuple[Booking, ...]: ...
     def save(self, booking: Booking, expected_version: int) -> None: ...
 
 
