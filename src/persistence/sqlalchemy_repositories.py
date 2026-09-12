@@ -46,6 +46,14 @@ from src.domain.sales import (
     SalesStage,
     SalesTurn,
 )
+from src.domain.lead_touch import (
+    BoardCommand,
+    BoardCommandAction,
+    BoardPerson,
+    BoardTab,
+    LeadTouchKind,
+    StoredLeadTouch,
+)
 from src.domain.tenancy import Business, BusinessDNAVersion
 
 from .errors import (
@@ -64,6 +72,9 @@ from .repositories import (
     SecurityCredentials,
 )
 from .sqlalchemy_models import (
+    BoardCommandRow,
+    BoardPersonRow,
+    BoardTouchRow,
     BillingWebhookEventRow,
     BusinessDNARow,
     BusinessRow,
@@ -2140,4 +2151,201 @@ class SQLAlchemyPaymentRequestRepository:
             expires_at=_aware(row.expires_at).astimezone(timezone.utc),
             metadata=row.metadata_json,
             version=row.version,
+        )
+
+
+class SQLAlchemyBoardRepository:
+    def __init__(self, session: Session) -> None:
+        self.session = session
+
+    def get_person(
+        self, business_id: str, person_id: str, *, for_update: bool = False
+    ) -> BoardPerson | None:
+        query = select(BoardPersonRow).where(
+            BoardPersonRow.business_id == business_id,
+            BoardPersonRow.person_id == person_id,
+        )
+        if for_update:
+            query = query.with_for_update()
+        row = self.session.scalar(query)
+        return self._person_from_row(row) if row else None
+
+    def add_person(self, person: BoardPerson, *, created_at: datetime) -> None:
+        self.session.add(
+            BoardPersonRow(
+                business_id=person.business_id,
+                person_id=person.person_id,
+                tab=person.tab.value,
+                name=person.name,
+                phone=person.phone,
+                email=person.email,
+                summary=person.summary,
+                last_kind=person.last_kind.value,
+                last_cycle=person.last_cycle,
+                last_touch_at=person.last_touch_at,
+                paused=person.paused,
+                version=person.version,
+                created_at=created_at,
+                updated_at=created_at,
+            )
+        )
+
+    def save_person(self, person: BoardPerson, expected_version: int, *, updated_at: datetime) -> None:
+        result = self.session.execute(
+            update(BoardPersonRow)
+            .where(
+                BoardPersonRow.business_id == person.business_id,
+                BoardPersonRow.person_id == person.person_id,
+                BoardPersonRow.version == expected_version,
+            )
+            .values(
+                tab=person.tab.value,
+                name=person.name,
+                phone=person.phone,
+                email=person.email,
+                summary=person.summary,
+                last_kind=person.last_kind.value,
+                last_cycle=person.last_cycle,
+                last_touch_at=person.last_touch_at,
+                paused=person.paused,
+                version=expected_version + 1,
+                updated_at=updated_at,
+            )
+        )
+        if result.rowcount != 1:
+            raise RuntimeError(f"board person version conflict: {person.person_id}")
+
+    def list_people(
+        self, business_id: str, tab: BoardTab, *, limit: int = 200
+    ) -> tuple[BoardPerson, ...]:
+        rows = self.session.scalars(
+            select(BoardPersonRow)
+            .where(BoardPersonRow.business_id == business_id, BoardPersonRow.tab == tab.value)
+            .order_by(BoardPersonRow.last_touch_at.desc())
+            .limit(limit)
+        ).all()
+        return tuple(self._person_from_row(row) for row in rows)
+
+    def get_touch(self, business_id: str, touch_id: str) -> StoredLeadTouch | None:
+        row = self.session.scalar(
+            select(BoardTouchRow).where(
+                BoardTouchRow.business_id == business_id,
+                BoardTouchRow.touch_id == touch_id,
+            )
+        )
+        return self._touch_from_row(row) if row else None
+
+    def add_touch(self, touch: StoredLeadTouch, *, created_at: datetime) -> None:
+        self.session.add(
+            BoardTouchRow(
+                business_id=touch.business_id,
+                touch_id=touch.touch_id,
+                person_id=touch.person_id,
+                cycle=touch.cycle,
+                kind=touch.kind.value,
+                source=touch.source,
+                summary=touch.summary,
+                payload=dict(touch.payload),
+                occurred_at=touch.occurred_at,
+                created_at=created_at,
+            )
+        )
+
+    def list_touches(
+        self, business_id: str, person_id: str, *, limit: int = 200
+    ) -> tuple[StoredLeadTouch, ...]:
+        rows = self.session.scalars(
+            select(BoardTouchRow)
+            .where(
+                BoardTouchRow.business_id == business_id,
+                BoardTouchRow.person_id == person_id,
+            )
+            .order_by(BoardTouchRow.occurred_at.asc())
+            .limit(limit)
+        ).all()
+        return tuple(self._touch_from_row(row) for row in rows)
+
+    def add_command(self, command: BoardCommand) -> None:
+        self.session.add(
+            BoardCommandRow(
+                business_id=command.business_id,
+                command_id=command.command_id,
+                person_id=command.person_id,
+                action=command.action.value,
+                payload=dict(command.payload),
+                status=command.status,
+                created_at=command.created_at,
+                updated_at=command.created_at,
+            )
+        )
+
+    def list_commands(
+        self, business_id: str, person_id: str, *, limit: int = 50
+    ) -> tuple[BoardCommand, ...]:
+        rows = self.session.scalars(
+            select(BoardCommandRow)
+            .where(
+                BoardCommandRow.business_id == business_id,
+                BoardCommandRow.person_id == person_id,
+            )
+            .order_by(BoardCommandRow.created_at.desc())
+            .limit(limit)
+        ).all()
+        return tuple(self._command_from_row(row) for row in rows)
+
+    def mark_command_status(
+        self, business_id: str, command_id: str, status: str, *, now: datetime
+    ) -> None:
+        result = self.session.execute(
+            update(BoardCommandRow)
+            .where(
+                BoardCommandRow.business_id == business_id,
+                BoardCommandRow.command_id == command_id,
+            )
+            .values(status=status, updated_at=now)
+        )
+        if result.rowcount != 1:
+            raise KeyError(f"board command not found: {command_id}")
+
+    @staticmethod
+    def _person_from_row(row: BoardPersonRow) -> BoardPerson:
+        return BoardPerson(
+            business_id=row.business_id,
+            person_id=row.person_id,
+            tab=BoardTab(row.tab),
+            name=row.name,
+            phone=row.phone,
+            email=row.email,
+            summary=row.summary,
+            last_kind=LeadTouchKind(row.last_kind),
+            last_cycle=row.last_cycle,
+            last_touch_at=_aware(row.last_touch_at),
+            paused=row.paused,
+            version=row.version,
+        )
+
+    @staticmethod
+    def _touch_from_row(row: BoardTouchRow) -> StoredLeadTouch:
+        return StoredLeadTouch(
+            business_id=row.business_id,
+            person_id=row.person_id,
+            touch_id=row.touch_id,
+            cycle=row.cycle,
+            kind=LeadTouchKind(row.kind),
+            source=row.source,
+            summary=row.summary,
+            occurred_at=_aware(row.occurred_at),
+            payload=row.payload or {},
+        )
+
+    @staticmethod
+    def _command_from_row(row: BoardCommandRow) -> BoardCommand:
+        return BoardCommand(
+            business_id=row.business_id,
+            command_id=row.command_id,
+            person_id=row.person_id,
+            action=BoardCommandAction(row.action),
+            payload=row.payload or {},
+            created_at=_aware(row.created_at),
+            status=row.status,
         )

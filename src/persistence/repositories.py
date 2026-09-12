@@ -14,6 +14,7 @@ from src.domain.sales import (
     CustomerSalesProfile, SalesKnowledgeCard, SalesKnowledgeStatus, SalesObjectionRecord,
     SalesPlaybookVersion, SalesTurn,
 )
+from src.domain.lead_touch import BoardCommand, BoardPerson, BoardTab, StoredLeadTouch
 from src.domain.tenancy import Business, BusinessDNAVersion
 
 
@@ -164,6 +165,27 @@ class SalesProfileRepository(Protocol):
     def save(
         self, profile: CustomerSalesProfile, expected_version: int, *, now: datetime
     ) -> CustomerSalesProfile: ...
+
+
+class BoardRepository(Protocol):
+    def get_person(
+        self, business_id: str, person_id: str, *, for_update: bool = False
+    ) -> BoardPerson | None: ...
+    def add_person(self, person: BoardPerson, *, created_at: datetime) -> None: ...
+    def save_person(self, person: BoardPerson, expected_version: int, *, updated_at: datetime) -> None: ...
+    def list_people(
+        self, business_id: str, tab: BoardTab, *, limit: int = 200
+    ) -> tuple[BoardPerson, ...]: ...
+    def get_touch(self, business_id: str, touch_id: str) -> StoredLeadTouch | None: ...
+    def add_touch(self, touch: StoredLeadTouch, *, created_at: datetime) -> None: ...
+    def list_touches(
+        self, business_id: str, person_id: str, *, limit: int = 200
+    ) -> tuple[StoredLeadTouch, ...]: ...
+    def add_command(self, command: BoardCommand) -> None: ...
+    def list_commands(
+        self, business_id: str, person_id: str, *, limit: int = 50
+    ) -> tuple[BoardCommand, ...]: ...
+    def mark_command_status(self, business_id: str, command_id: str, status: str, *, now: datetime) -> None: ...
 
 
 class SalesTurnRepository(Protocol):
@@ -488,6 +510,7 @@ class UnitOfWork(Protocol):
     sales_knowledge: SalesKnowledgeRepository
     sales_playbooks: SalesPlaybookRepository
     sales_objections: SalesObjectionRepository
+    board: BoardRepository
 
     def __enter__(self) -> "UnitOfWork": ...
     def __exit__(self, exc_type: object, exc: object, traceback: object) -> None: ...

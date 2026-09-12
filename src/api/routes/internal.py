@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, Header
 from src.domain.models import utc_now
 from src.persistence.commercial_expiry import CommercialExpirySweep
 from src.persistence.crm_webhook_service import CrmWebhookService
+from src.persistence.cycle_command_delivery import CycleCommandDeliveryService
 from src.persistence.follow_up_service import FollowUpSweepResult, PersistentFollowUpRunner
 from src.persistence.sms_service import SmsService
 
@@ -71,10 +72,15 @@ def deliver_integration_outbox(
         public_api_base_url=container.settings.public_api_base_url,
     )
     sms = sms_service.deliver_due()
+    commands = CycleCommandDeliveryService(
+        container.unit_of_work_factory,
+        evorove_base_url=container.settings.evorove_base_url,
+        internal_task_secret=container.settings.internal_task_secret,
+    ).deliver_due()
     return {
-        "attempted": crm["attempted"] + sms["attempted"],
-        "sent": crm["sent"] + sms["sent"],
-        "failed": crm["failed"] + sms["failed"],
+        "attempted": crm["attempted"] + sms["attempted"] + commands["attempted"],
+        "sent": crm["sent"] + sms["sent"] + commands["sent"],
+        "failed": crm["failed"] + sms["failed"] + commands["failed"],
     }
 
 

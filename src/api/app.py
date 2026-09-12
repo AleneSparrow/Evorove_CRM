@@ -5,7 +5,8 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
@@ -35,6 +36,7 @@ from .observability import configure_logging, log_event
 from .routes import (
     auth,
     billing,
+    board,
     business_dna,
     businesses,
     dashboard,
@@ -89,6 +91,33 @@ def _maybe_run_migrations_on_startup(runtime_settings: Settings) -> None:
         )
 
 
+_STAFF_UI_RESERVED = frozenset(
+    {"api", "widget", "health", "ready", "docs", "redoc", "openapi.json"}
+)
+
+
+def _mount_staff_ui(application: FastAPI, dist: Path) -> None:
+    """Serve the React staff app from the same origin as the API."""
+
+    index = dist / "index.html"
+    if not index.is_file():
+        return
+    root = dist.resolve()
+    assets = root / "assets"
+    if assets.is_dir():
+        application.mount("/assets", StaticFiles(directory=assets), name="spa_assets")
+
+    @application.get("/{full_path:path}", include_in_schema=False)
+    def staff_spa(full_path: str) -> FileResponse:
+        first = full_path.split("/", 1)[0]
+        if first in _STAFF_UI_RESERVED or full_path in _STAFF_UI_RESERVED:
+            raise HTTPException(status_code=404)
+        candidate = (root / full_path).resolve()
+        if candidate.is_file() and candidate.is_relative_to(root):
+            return FileResponse(candidate)
+        return FileResponse(index)
+
+
 def create_app(
     *,
     settings: Settings | None = None,
@@ -97,6 +126,7 @@ def create_app(
     customer_response_generator: CustomerResponseGenerator | None = None,
     reassurance_response_generator: ReassuranceResponseGenerator | None = None,
     universal_reassurance_response_generator: UniversalReassuranceResponseGenerator | None = None,
+    staff_ui_dist: Path | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
@@ -199,6 +229,8 @@ def create_app(
     application.include_router(businesses.router)
     application.include_router(onboarding.router)
     application.include_router(dashboard.router)
+    application.include_router(board.router)
+    application.include_router(board.internal_router)
     application.include_router(business_dna.router)
     application.include_router(integrations.router)
     application.include_router(billing.router)
@@ -216,6 +248,11 @@ def create_app(
         StaticFiles(directory=Path(__file__).parents[2] / "web" / "widget", html=True),
         name="widget",
     )
+    skip_auto_ui = settings is not None and settings.app_env.casefold() == "test"
+    if staff_ui_dist is not None:
+        _mount_staff_ui(application, staff_ui_dist)
+    elif not skip_auto_ui:
+        _mount_staff_ui(application, Path(__file__).parents[2] / "web" / "app" / "dist")
     return application
 
 

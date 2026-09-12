@@ -11,8 +11,10 @@ Sale exit lives in Evorove. The hour is set here through `ProcessEngine`.
 `POST /api/v1/internal/businesses/{business_id}/hot-leads` — same body,
 `X-Internal-Task-Secret`. Disabled when the secret is unset.
 
-Live callers in Evorove are not wired yet. Do not pretend the repos are
-already integrated. Do not delete booking from the sales repo until they are.
+Live callers in Evorove report every sales touch to
+`POST /api/v1/internal/businesses/{id}/lead-touches` and POST a ready person to
+this hot-lead route. The hour is still booked here, not in cycle 2.
+See [`docs/lead-touch-contract.md`](lead-touch-contract.md).
 
 ## Required fields
 

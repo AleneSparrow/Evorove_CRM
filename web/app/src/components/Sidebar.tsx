@@ -1,6 +1,6 @@
 import { useEffect, useState, type ComponentType } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutGrid, MessageSquare, Workflow, CreditCard, LogOut, Menu, X, Plus, Check, ChevronsUpDown, Home, HelpCircle, User } from "lucide-react";
+import { LayoutGrid, MessageSquare, Users, Workflow, CreditCard, LogOut, Menu, X, Plus, Check, ChevronsUpDown, Home, HelpCircle, User } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { api, type OwnedBusiness } from "../api/client";
 import { EvoroveMark } from "./Shared";
@@ -211,6 +211,7 @@ function MobileNav({
               </div>
               <nav className="flex flex-col gap-1">
                 <NavItem icon={LayoutGrid} label="Tomorrow" to="/app" end onClick={() => setOpen(false)} />
+                <NavItem icon={Users} label="People" to="/app/board" onClick={() => setOpen(false)} />
                 <NavItem icon={MessageSquare} label="Conversations" to="/app/conversations" onClick={() => setOpen(false)} />
                 <NavItem icon={Workflow} label="Settings" to="/app/settings" onClick={() => setOpen(false)} />
                 <NavItem icon={CreditCard} label="Billing" to="/app/billing" onClick={() => setOpen(false)} />
@@ -321,6 +322,7 @@ export function Sidebar() {
           </div>
           <nav className="flex flex-col gap-1">
             <NavItem icon={LayoutGrid} label="Tomorrow" to="/app" end />
+            <NavItem icon={Users} label="People" to="/app/board" />
             <NavItem icon={MessageSquare} label="Conversations" to="/app/conversations" />
             <NavItem icon={Workflow} label="Settings" to="/app/settings" />
             <NavItem icon={CreditCard} label="Billing" to="/app/billing" />

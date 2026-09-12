@@ -21,11 +21,13 @@ from src.domain.hot_lead import (
     HotLeadRejected,
 )
 from src.domain.models import DecisionType, Lead, ProcessCase, ProcessEvent
+from src.domain.lead_touch import LeadTouch, LeadTouchIdentity, LeadTouchKind, stable_person_id
 from src.domain.states import ProcessState
 from src.engine.commercial import find_service
 from src.engine.decision_router import DecisionRequest
 from src.engine.lead_intake import LeadIntakeService
 from src.engine.process_engine import ProcessEngine
+from src.persistence.lead_touch_service import PersistentLeadTouchService
 from src.persistence.errors import IdempotencyInProgressError
 from src.persistence.repositories import ClaimStatus, UnitOfWork, UnitOfWorkFactory
 
@@ -99,6 +101,9 @@ class PersistentHotLeadHandoffService:
 
         phone = LeadIntakeService._normalize_phone(handoff.identity.phone)
         email = LeadIntakeService._normalize_email(handoff.identity.email)
+        person_id = stable_person_id(
+            handoff.business_id, phone=phone, email=email, person_id=handoff.person_id
+        )
         self._lock_identities(uow, handoff.business_id, phone, email)
 
         try:
@@ -109,9 +114,9 @@ class PersistentHotLeadHandoffService:
                 "Phone and email belong to different existing leads",
             ) from exc
         if existing_lead is not None:
-            lead, lead_created = self._merge_lead(existing_lead, handoff, phone, email), False
+            lead, lead_created = self._merge_lead(existing_lead, handoff, phone, email, person_id), False
         else:
-            lead = self._new_lead(handoff, phone, email)
+            lead = self._new_lead(handoff, phone, email, person_id)
             lead_created = True
 
         active = None if lead_created else self._existing_case(uow, handoff.business_id, lead.lead_id)
@@ -159,6 +164,25 @@ class PersistentHotLeadHandoffService:
             handoff.business_id,
             case.case_id,
             case.event_history[existing_event_count:],
+        )
+        PersistentLeadTouchService(self.unit_of_work_factory).accept_in_unit_of_work(
+            uow,
+            LeadTouch(
+                business_id=handoff.business_id,
+                touch_id=f"ready-to-book:{handoff.handoff_id}",
+                person_id=person_id,
+                cycle=2,
+                kind=LeadTouchKind.READY_TO_BOOK,
+                source="evorove",
+                summary="Ready to book",
+                occurred_at=occurred_at,
+                identity=LeadTouchIdentity(
+                    name=handoff.identity.name,
+                    phone=phone,
+                    email=email,
+                ),
+                payload={"handoff_id": handoff.handoff_id, "service_id": handoff.service_id},
+            ),
         )
         result = HotLeadAcceptResult(
             business_id=handoff.business_id,
@@ -255,8 +279,13 @@ class PersistentHotLeadHandoffService:
         case.metadata["sales_profile_snapshot"] = dict(handoff.sales_profile_snapshot)
 
     @staticmethod
-    def _new_lead(handoff: HotLeadHandoff, phone: str | None, email: str | None) -> Lead:
-        attributes: dict[str, Any] = {"service_requested": handoff.service_id}
+    def _new_lead(
+        handoff: HotLeadHandoff, phone: str | None, email: str | None, person_id: str
+    ) -> Lead:
+        attributes: dict[str, Any] = {
+            "service_requested": handoff.service_id,
+            "person_id": person_id,
+        }
         if handoff.customer_location:
             attributes["customer_location"] = handoff.customer_location
         return Lead(
@@ -273,9 +302,11 @@ class PersistentHotLeadHandoffService:
         handoff: HotLeadHandoff,
         phone: str | None,
         email: str | None,
+        person_id: str,
     ) -> Lead:
         attributes = dict(existing.attributes)
         attributes["service_requested"] = handoff.service_id
+        attributes["person_id"] = existing.attributes.get("person_id") or person_id
         if handoff.customer_location and "customer_location" not in attributes:
             attributes["customer_location"] = handoff.customer_location
         return Lead(

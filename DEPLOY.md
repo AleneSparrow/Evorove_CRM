@@ -8,19 +8,17 @@ guide is mostly account setup and environment variables, most of which only
 you can do (creating accounts and entering secrets/payment isn't something
 Claude does on your behalf).
 
-Two independent pieces, two different hosts:
+One public site: the Docker image builds the React staff app and the API
+serves it from the **same origin**. People (Cold → Done), Tomorrow, login,
+and `/api/v1` all live on one host. `evorove.com` stays the marketing site
+in the sister repo; this CRM belongs on a product host such as
+`app.evorove.com`.
 
-- **Backend + Postgres** → [Railway](https://railway.com). Recommended
-  because it deploys straight from this repo's `Dockerfile`, gives you a
-  Postgres database in the same project with one click, and its Hobby plan
-  ($5/mo minimum, no credit card required to start on the trial) is enough
-  for an early-stage app — no separate database bill, no 30-day database
-  expiry like some competitors' free tiers have.
-- **Frontend (the `web/app` React app)** → [Vercel](https://vercel.com) or
-  [Cloudflare Pages](https://pages.cloudflare.com). Both have a genuinely
-  free, no-time-limit tier for a static site like this one, with a global CDN
-  and free custom domain support. Either works; pick whichever you already
-  have an account style preference for.
+- **App + Postgres** → [Railway](https://railway.com). Deploys this repo's
+  `Dockerfile` (Node builds `web/app`, Python serves it). Hobby plan is
+  enough to start.
+- A separate Vercel/Pages frontend is optional. Only use it if you
+  deliberately split the UI onto another origin and set `VITE_API_BASE`.
 
 (Render is a fine alternative to Railway if you'd rather use it — same
 `Dockerfile`-based deploy — but its free Postgres tier expires after 30 days
@@ -32,7 +30,7 @@ launch, only mentioned in case you already have a Render account.)
 
 1. Sign up at railway.com (GitHub login is the fastest option) and create a
    **New Project → Deploy from GitHub repo**, pointing at
-   `AleneSparrow/ai-business-process-engine`. Railway will detect the
+   `AleneSparrow/Evorove_CRM`. Railway will detect the
    `Dockerfile` automatically.
 2. In the same project, click **+ New → Database → PostgreSQL**. Railway
    provisions it and exposes a `DATABASE_URL`-shaped set of variables
@@ -52,41 +50,42 @@ launch, only mentioned in case you already have a Render account.)
      and `ANTHROPIC_MODEL`; if `openai`, set `OPENAI_API_KEY` and
      `OPENAI_MODEL` instead — either way, set the key **directly in
      Railway's Variables tab**, not by giving it to Claude.
-   - `CORS_ALLOWED_ORIGINS` — leave a placeholder for now
-     (`https://placeholder.example`); you'll come back and set this to your
-     real frontend URL in step 3. The app refuses to start in production
-     with a wildcard (`*`) here, and refuses every browser request from an
-     origin not explicitly listed — so this has to be exact.
+   - `CORS_ALLOWED_ORIGINS` — public origin of this app (e.g.
+     `https://app.evorove.com`). Same-origin staff UI does not need CORS;
+     customer-site widgets do. Production refuses a wildcard (`*`).
+   - `FRONTEND_BASE_URL` — the same public origin, no trailing slash.
+   - `INTERNAL_TASK_SECRET` — long random value, **the same** as Evorove
+     and cycle 1 (`evorove_lead`).
+   - `EVOROVE_BASE_URL` — public origin of cycle 2, no trailing slash.
+   - `EVOROVE_LEAD_BASE_URL` — public origin of cycle 1's own API, no
+     trailing slash. Optional: unset means the hypothesis_id -> outcome
+     report on Done/drop (phase 3) is silently skipped, nothing else
+     breaks.
    - `LOG_LEVEL` = `INFO` (optional, this is already the default)
-4. Deploy. Railway builds the Docker image, runs `alembic upgrade head` once
-   as a pre-deploy step, then starts the app (see `railway.toml` — this is
-   automatic, nothing to run by hand). Migrations deliberately run there and
-   not inside the container's start command: as a pre-deploy step they run
-   exactly once per deployment, before anything serves traffic, so adding a
-   second replica later can't make several containers race to apply the same
-   migration. Once it's live, Railway shows a public URL like
-   `https://your-service.up.railway.app` — note it, the frontend needs it.
-5. Generate a custom domain later from the service's **Settings → Networking**
-   if you want `api.yourdomain.com` instead of the railway.app subdomain.
+4. Deploy. Railway builds the Docker image (including the staff UI), runs
+   `alembic upgrade head` once as a pre-deploy step, then starts the app
+   (see `railway.toml`). Once it's live, Railway shows a public URL like
+   `https://your-service.up.railway.app` — login and `/app/board` must work
+   there before you attach a custom domain.
 
-## 2. Frontend on Vercel (or Cloudflare Pages)
+## 2. Custom domain
 
-1. Sign up, **Add New Project**, import the same GitHub repo.
-2. Set the project root to `web/app` (Vercel/Cloudflare both let you point a
-   project at a subdirectory of a monorepo).
-3. Build command: `npm run build`. Output directory: `dist`.
-4. Environment variable: `VITE_API_BASE` = the Railway backend URL from step
-   1.4 above (e.g. `https://your-service.up.railway.app`).
-5. Deploy. You'll get a URL like `https://your-app.vercel.app` (or a
-   `.pages.dev` one on Cloudflare) — note it too.
+After Railway shows `https://your-service.up.railway.app`, open that URL:
+login and `/app/board` must load from the same host.
 
-## 3. Connect them
+Then **Settings → Networking → Custom domain** (e.g. `app.evorove.com`).
+In Cloudflare DNS for `evorove.com`, CNAME that hostname to Railway. Set
+`FRONTEND_BASE_URL` and `CORS_ALLOWED_ORIGINS` to `https://app.evorove.com`
+and redeploy.
 
-Go back to the Railway backend's **Variables** and set the real
-`CORS_ALLOWED_ORIGINS` to the frontend URL from step 2.5 (comma-separate if
-you also want to allow a custom domain once you set one up, e.g.
-`https://your-app.vercel.app,https://app.yourdomain.com`). Save — Railway
-redeploys automatically on a variable change.
+Evorove (cycle 2) needs `CRM_BASE_URL=https://app.evorove.com` (or the
+Railway URL until the domain is live) and the same `INTERNAL_TASK_SECRET`.
+
+## 3. Split frontend (optional)
+
+Only if the UI must stay on Cloudflare/Vercel instead of inside Docker:
+root `web/app`, build `npm run build`, `VITE_API_BASE` = the Railway API
+origin. Then list that UI origin in `CORS_ALLOWED_ORIGINS`.
 
 ## 4. Billing (Lemon Squeezy) — required before a real customer can subscribe
 
@@ -202,10 +201,11 @@ yet; nothing else in the deploy depends on it.
    curl -X POST https://your-backend.up.railway.app/api/v1/internal/commercial/expire \
      -H "X-Internal-Task-Secret: <the same value as INTERNAL_TASK_SECRET>"
    ```
-   The same secret also gates `POST /api/v1/internal/businesses/{business_id}/hot-leads`,
-   the machine receive path for a ready-to-book person from Evorove. That is not a
-   cron job. Call it only when handing off a hot lead. It does not set a calendar
-   hour.
+   The same secret also gates `POST /api/v1/internal/businesses/{business_id}/hot-leads`
+   and `POST /api/v1/internal/businesses/{business_id}/lead-touches`. Evorove POSTs
+   both when `CRM_BASE_URL` is set. Set `EVOROVE_BASE_URL` on this service to the
+   cycle-2 origin so owner board commands can be delivered. Use the same secret
+   value in both deployments. `integrations/deliver` ships those commands.
 
    `integrations/deliver` retries CRM webhook outbox rows and conversational
    SMS replies. `commercial/expire`

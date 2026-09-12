@@ -10,6 +10,7 @@ from .sqlalchemy_repositories import (
     SQLAlchemyBusinessDNARepository,
     SQLAlchemyBusinessRepository,
     SQLAlchemyBookingRepository,
+    SQLAlchemyBoardRepository,
     SQLAlchemyConversationMessageRepository,
     SQLAlchemyConversationRepository,
     SQLAlchemyCrmWebhookConnectionRepository,
@@ -84,6 +85,7 @@ class SQLAlchemyUnitOfWork:
         self.sales_knowledge = SQLAlchemySalesKnowledgeRepository(self.session)
         self.sales_playbooks = SQLAlchemySalesPlaybookRepository(self.session)
         self.sales_objections = SQLAlchemySalesObjectionRepository(self.session)
+        self.board = SQLAlchemyBoardRepository(self.session)
         return self
 
     def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:

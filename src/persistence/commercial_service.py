@@ -1343,6 +1343,11 @@ class CommercialWorkflowService:
         uow.events.add_many(
             case.business_id, case.case_id, case.event_history[existing_event_count:]
         )
+        from src.persistence.lead_touch_service import PersistentLeadTouchService
+
+        PersistentLeadTouchService(lambda: uow).record_case_state(
+            uow, case, target, occurred_at
+        )
 
     @staticmethod
     def _audit(

@@ -55,7 +55,7 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE = (import.meta.env.VITE_API_BASE ?? "http://localhost:8000").replace(/\/$/, "");
+const API_BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/$/, "");
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string | null): Promise<T> {
   const headers: Record<string, string> = {
@@ -840,6 +840,77 @@ export const api = {
       { method: "GET" },
       token,
     ),
+
+  listBoard: (token: string, businessId: string, tab: BoardTab) =>
+    request<BoardListResponse>(
+      `/api/v1/businesses/${businessId}/board?tab=${encodeURIComponent(tab)}`,
+      { method: "GET" },
+      token,
+    ),
+
+  getBoardPerson: (token: string, businessId: string, personId: string) =>
+    request<BoardPersonDetail>(
+      `/api/v1/businesses/${businessId}/board/people/${encodeURIComponent(personId)}`,
+      { method: "GET" },
+      token,
+    ),
+
+  issueBoardCommand: (
+    token: string,
+    businessId: string,
+    personId: string,
+    action: "discard" | "correct_identity" | "pause_outreach" | "takeover",
+    fields?: { name?: string; phone?: string; email?: string },
+  ) =>
+    request<BoardCommand>(
+      `/api/v1/businesses/${businessId}/board/people/${encodeURIComponent(personId)}/commands`,
+      { method: "POST", body: JSON.stringify({ action, ...fields }) },
+      token,
+    ),
 };
 
 export { API_BASE };
+
+export type BoardTab = "cold" | "in_work" | "offer_sent" | "done";
+
+export interface BoardPerson {
+  person_id: string;
+  tab: BoardTab | "discarded";
+  name: string | null;
+  phone: string | null;
+  email: string | null;
+  summary: string;
+  last_kind: string;
+  last_cycle: number;
+  last_touch_at: string;
+  paused: boolean;
+}
+
+export interface BoardTouch {
+  touch_id: string;
+  cycle: number;
+  kind: string;
+  source: string;
+  summary: string;
+  occurred_at: string;
+  payload: Record<string, unknown>;
+}
+
+export interface BoardCommand {
+  command_id: string;
+  action: string;
+  status: string;
+  created_at: string;
+  payload: Record<string, unknown>;
+}
+
+export interface BoardListResponse {
+  tab: BoardTab;
+  people: BoardPerson[];
+}
+
+export interface BoardPersonDetail {
+  person: BoardPerson;
+  touches: BoardTouch[];
+  commands: BoardCommand[];
+}

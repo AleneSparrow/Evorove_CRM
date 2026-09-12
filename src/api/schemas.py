@@ -121,6 +121,7 @@ class HotLeadHandoffRequest(ApiModel):
     schema_version: Literal["1"] = "1"
     sales_profile_snapshot: dict[str, Any] = Field(default_factory=dict)
     customer_location: Annotated[str | None, Field(min_length=1, max_length=64)] = None
+    person_id: Annotated[str | None, Field(min_length=8, max_length=128)] = None
 
     @field_validator("handoff_id")
     @classmethod
@@ -1447,3 +1448,94 @@ class BusinessDNASettingsUpdateRequest(ApiModel):
     objection_responses: Annotated[tuple[ObjectionResponseUpdateSchema, ...], Field(max_length=50)] = ()
     compliance_disclaimer: Annotated[str, Field(max_length=1000)] = ""
     ai_disclosure_text: Annotated[str, Field(max_length=200)] = ""
+
+
+class LeadTouchIdentityRequest(ApiModel):
+    name: Annotated[str | None, Field(min_length=1, max_length=255)] = None
+    phone: Annotated[str | None, Field(min_length=1, max_length=64)] = None
+    email: Annotated[str | None, Field(min_length=1, max_length=320)] = None
+
+
+class LeadTouchRequest(ApiModel):
+    touch_id: Annotated[str, Field(min_length=1, max_length=255)]
+    cycle: Literal[1, 2, 3]
+    kind: Literal[
+        "assembled",
+        "reason_updated",
+        "discarded",
+        "dialogue_started",
+        "message",
+        "offer_sent",
+        "ready_to_book",
+        "stopped",
+        "human_takeover",
+        "booked",
+        "paid",
+        "command_applied",
+    ]
+    source: Literal["evorove_lead", "evorove", "evorove_crm"]
+    summary: Annotated[str, Field(min_length=1, max_length=500)]
+    person_id: Annotated[str | None, Field(min_length=8, max_length=128)] = None
+    identity: LeadTouchIdentityRequest = LeadTouchIdentityRequest()
+    identity_blob: Annotated[str | None, Field(min_length=1, max_length=500)] = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+    occurred_at: AwareDatetime | None = None
+    schema_version: Literal["1"] = "1"
+
+
+class LeadTouchAcceptResponse(ApiModel):
+    business_id: str
+    person_id: str
+    tab: str
+    touch_id: str
+    kind: str
+    duplicate: bool
+
+
+class BoardPersonSchema(ApiModel):
+    person_id: str
+    tab: str
+    name: str | None
+    phone: str | None
+    email: str | None
+    summary: str
+    last_kind: str
+    last_cycle: int
+    last_touch_at: datetime
+    paused: bool
+
+
+class BoardTouchSchema(ApiModel):
+    touch_id: str
+    cycle: int
+    kind: str
+    source: str
+    summary: str
+    occurred_at: datetime
+    payload: dict[str, Any]
+
+
+class BoardCommandSchema(ApiModel):
+    command_id: str
+    action: str
+    status: str
+    created_at: datetime
+    payload: dict[str, Any]
+
+
+class BoardListResponse(ApiModel):
+    tab: str
+    people: tuple[BoardPersonSchema, ...]
+
+
+class BoardPersonDetailResponse(ApiModel):
+    person: BoardPersonSchema
+    touches: tuple[BoardTouchSchema, ...]
+    commands: tuple[BoardCommandSchema, ...]
+
+
+class BoardCommandRequest(ApiModel):
+    action: Literal["discard", "correct_identity", "pause_outreach", "takeover"]
+    name: Annotated[str | None, Field(min_length=1, max_length=255)] = None
+    phone: Annotated[str | None, Field(min_length=1, max_length=64)] = None
+    email: Annotated[str | None, Field(min_length=1, max_length=320)] = None

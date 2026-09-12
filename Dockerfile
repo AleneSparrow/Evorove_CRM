@@ -1,3 +1,11 @@
+FROM node:22-bookworm-slim AS frontend
+WORKDIR /web
+COPY web/app/package.json web/app/package-lock.json ./
+RUN npm ci
+COPY web/app/ ./
+ENV VITE_API_BASE=
+RUN npm run build
+
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -22,6 +30,7 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
 RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin appuser
 
 COPY --chown=appuser:appuser . .
+COPY --from=frontend --chown=appuser:appuser /web/dist /app/web/app/dist
 
 USER appuser
 

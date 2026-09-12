@@ -1,6 +1,8 @@
 .git
 .env
 .venv
+web/app/node_modules
+web/app/dist
 venv
 .pytest_cache
 __pycache__

@@ -101,8 +101,7 @@ def accept_hot_lead(
     summary="Machine receive path for a hot lead from Evorove",
     description=(
         "Same contract as the staff hot-leads route, gated by INTERNAL_TASK_SECRET. "
-        "Does not set a calendar hour. Live callers in Evorove are not wired yet; "
-        "this is the CRM side of that glue."
+        "Does not set a calendar hour. Evorove POSTs here when the person is ready to book."
     ),
 )
 def accept_hot_lead_internal(

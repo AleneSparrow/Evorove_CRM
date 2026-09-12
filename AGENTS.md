@@ -1,9 +1,9 @@
 # Evorove CRM agent instructions
 
 - Communicate with the product owner in Russian. Product UI and customer-facing copy remain English.
-- This repository is cycle 3 only: collect what is needed and book an already-hot lead. Product north star: `/Users/alenakulish/dev/evorove/FOUNDATION.md`. Local product boundaries: `CLAUDE.md`.
-- Do not add lead generation or cold-sale conversation here. Those belong in `evorove`.
-- Keep the existing booking and hot-lead case machinery as the last step of the larger product. Do not replace it with a generic CRM.
+- This repository owns the CRM **board** (Cold, In progress, Offer made, Done) and close (sale or appointment). Product north star: `/Users/alenakulish/dev/evorove/FOUNDATION.md` (revised 12 September 2026). Local product boundaries: `CLAUDE.md`.
+- Do not add open-web scraping or GREET copy here. Finding people belongs in `evorove_lead`. Cold writing belongs in `evorove`. Do keep cold people on the Cold tab — a CRM without Cold is not a CRM.
+- Keep the existing booking machinery for the **Done** tab. Do not merge `SalesStage` into `ProcessState`.
 - `docs/sales-agent-implementation-plan-ru.md` describes cycle 2 in the sibling repo; do not treat it as a license to implement sales conversation in this CRM.
 - Never run `git push`; only the owner pushes.
 - Do not read, request, print, or edit secrets and local `.env` files.

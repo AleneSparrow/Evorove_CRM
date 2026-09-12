@@ -1,6 +1,8 @@
 # Evorove CRM
 
-Evorove CRM is cycle 3 of one product: accept an already-hot person, collect what the service needs, and put a specific hour on the calendar. The evening screen is tomorrow's appointments — not a funnel to close. Sales conversation lives in the sister repo [Evorove](https://github.com/AleneSparrow/Evorove). Finding people lives in `evorove_lead`. Do not add either here.
+Evorove CRM is the owner’s board for the whole path, not a box of already-ready people. Four tabs: **Cold**, **In progress**, **Offer made**, **Done** (sale completed, or an appointment if the service is offline). Finding people lives in `evorove_lead` and lands on Cold. Cold writing lives in the sister repo [Evorove](https://github.com/AleneSparrow/Evorove). Do not scrape the open web or run GREET here. Do keep Cold — a CRM without it is not a CRM.
+
+North star: `/Users/alenakulish/dev/evorove/FOUNDATION.md`.
 
 See [SNAPSHOT.md](SNAPSHOT.md) for the split date and what was copied.
 
@@ -117,10 +119,10 @@ This is the staff-authenticated direct intake endpoint: the bearer-token user mu
 
 ## Deploying to production
 
-See [`DEPLOY.md`](DEPLOY.md) for the actual steps (Railway for the backend +
-Postgres, Vercel/Cloudflare Pages for the `web/app` frontend). The
-`Dockerfile` already runs migrations on startup and exposes `/health`, so
-most of what's left is account setup and environment variables.
+See [`DEPLOY.md`](DEPLOY.md). The Docker image builds the staff UI and the
+API serves it from the same origin (login, People board, `/api/v1`). Attach
+`app.evorove.com` (or the Railway URL) in production. `evorove.com` remains
+the marketing site in the sister repo.
 
 ## Website conversations and widget
 

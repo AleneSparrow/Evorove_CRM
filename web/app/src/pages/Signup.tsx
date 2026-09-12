@@ -22,8 +22,8 @@ export default function Signup() {
       setError("Please agree to the Terms of Service and Privacy Policy.");
       return;
     }
-    if (password.length < 8) {
-      setError("Password needs to be at least 8 characters.");
+    if (password.length < 12) {
+      setError("Password needs to be at least 12 characters.");
       return;
     }
     if (password !== confirmPassword) {
@@ -50,8 +50,8 @@ export default function Signup() {
           <Field label="Work email">
             <input type="email" required autoFocus className={inputCls} placeholder="you@yourbusiness.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           </Field>
-          <Field label="Password" hint="At least 8 characters">
-            <input type="password" required minLength={8} className={inputCls} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Field label="Password" hint="At least 12 characters">
+            <input type="password" required minLength={12} className={inputCls} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
           </Field>
           <Field label="Confirm password">
             <input type="password" required className={inputCls} placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />

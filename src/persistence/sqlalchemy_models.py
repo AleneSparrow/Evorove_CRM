@@ -1013,6 +1013,95 @@ class IntegrationOutboxRow(Base):
     )
 
 
+class BoardPersonRow(Base):
+    """Owner-facing person card. Tabs are derived from lead touches, not ProcessState."""
+
+    __tablename__ = "board_people"
+
+    business_id: Mapped[str] = mapped_column(
+        String(128), ForeignKey("businesses.id", ondelete="CASCADE"), primary_key=True
+    )
+    person_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    tab: Mapped[str] = mapped_column(String(32), nullable=False)
+    name: Mapped[str | None] = mapped_column(String(255))
+    phone: Mapped[str | None] = mapped_column(String(64))
+    email: Mapped[str | None] = mapped_column(String(320))
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    last_kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    last_cycle: Mapped[int] = mapped_column(Integer, nullable=False)
+    last_touch_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    paused: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    __table_args__ = (
+        CheckConstraint(
+            "tab IN ('cold','in_work','offer_sent','done','discarded')",
+            name="ck_board_people_tab",
+        ),
+        CheckConstraint("version >= 0", name="ck_board_people_version_nonnegative"),
+        Index("ix_board_people_business_tab", "business_id", "tab", "last_touch_at"),
+    )
+
+
+class BoardTouchRow(Base):
+    """Append-only lead touches from cycle 1, 2, or 3."""
+
+    __tablename__ = "board_touches"
+
+    business_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    touch_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    person_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    cycle: Mapped[int] = mapped_column(Integer, nullable=False)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    source: Mapped[str] = mapped_column(String(32), nullable=False)
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON_VALUE, nullable=False, default=dict)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["business_id", "person_id"],
+            ["board_people.business_id", "board_people.person_id"],
+            ondelete="CASCADE",
+            name="fk_board_touches_person",
+        ),
+        Index("ix_board_touches_person", "business_id", "person_id", "occurred_at"),
+        CheckConstraint("cycle IN (1, 2, 3)", name="ck_board_touches_cycle"),
+    )
+
+
+class BoardCommandRow(Base):
+    """Owner correction for cycle 1 or 2, delivered through the outbox."""
+
+    __tablename__ = "board_commands"
+
+    business_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    command_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    person_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    action: Mapped[str] = mapped_column(String(32), nullable=False)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON_VALUE, nullable=False, default=dict)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["business_id", "person_id"],
+            ["board_people.business_id", "board_people.person_id"],
+            ondelete="CASCADE",
+            name="fk_board_commands_person",
+        ),
+        CheckConstraint(
+            "action IN ('discard','correct_identity','pause_outreach','takeover')",
+            name="ck_board_commands_action",
+        ),
+        CheckConstraint("status IN ('pending','delivered','failed')", name="ck_board_commands_status"),
+    )
+
+
 class SmsSuppressionRow(Base):
     """Phone numbers that must not receive SMS for this business after STOP."""
 

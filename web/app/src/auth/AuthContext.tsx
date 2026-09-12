@@ -154,7 +154,7 @@ export function describeError(err: unknown): string {
       case "business_id_taken":
         return "That business name is already taken — try a slightly different name.";
       case "validation_error":
-        return "Please check the highlighted fields and try again.";
+        return "Use a password of at least 12 characters, or check the fields and try again.";
       case "conversation_not_linked":
         return "This conversation isn't linked to a case yet, so there's nothing to resolve.";
       case "conversation_closed":

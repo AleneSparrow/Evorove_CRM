@@ -78,6 +78,7 @@ class HotLeadHandoff:
     schema_version: str = HOT_LEAD_HANDOFF_SCHEMA_VERSION
     sales_profile_snapshot: Mapping[str, Any] = field(default_factory=dict)
     customer_location: str | None = None
+    person_id: str | None = None
 
     def __post_init__(self) -> None:
         _require_text(self.business_id, "business_id")
@@ -95,6 +96,8 @@ class HotLeadHandoff:
             )
         if self.customer_location is not None:
             _require_text(self.customer_location, "customer_location")
+        if self.person_id is not None:
+            _require_text(self.person_id, "person_id")
         snapshot = dict(self.sales_profile_snapshot)
         _reject_calendar_keys(snapshot, "sales_profile_snapshot")
         object.__setattr__(self, "sales_profile_snapshot", _freeze(snapshot))
@@ -118,6 +121,7 @@ class HotLeadHandoff:
             },
             "sales_profile_snapshot": _unfreeze(self.sales_profile_snapshot),
             "customer_location": self.customer_location,
+            "person_id": self.person_id,
         }
 
     @classmethod
@@ -153,6 +157,7 @@ class HotLeadHandoff:
             schema_version=str(payload.get("schema_version") or HOT_LEAD_HANDOFF_SCHEMA_VERSION),
             sales_profile_snapshot=dict(snapshot),
             customer_location=_optional_text(payload.get("customer_location")),
+            person_id=_optional_text(payload.get("person_id")),
         )
 
 

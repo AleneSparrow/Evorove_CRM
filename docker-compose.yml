@@ -39,6 +39,17 @@ services:
       PUBLIC_CONVERSATION_TOKEN_TTL_HOURS: ${PUBLIC_CONVERSATION_TOKEN_TTL_HOURS:-720}
       PUBLIC_CHAT_MESSAGE_MAX_CHARS: ${PUBLIC_CHAT_MESSAGE_MAX_CHARS:-2000}
       MAX_REQUEST_BODY_BYTES: ${MAX_REQUEST_BODY_BYTES:-65536}
+      INTERNAL_TASK_SECRET: ${INTERNAL_TASK_SECRET:-local_development_only}
+      # From this container, Evorove on the Mac is the published host port.
+      # Default 8001 so CRM can stay on 8000. Same secret as Evorove.
+      EVOROVE_BASE_URL: http://host.docker.internal:${EVOROVE_HOST_PORT:-8001}
+      # Cycle 1 (evorove_lead) has no compose-managed app container of its
+      # own yet -- api.py runs via `uvicorn evorove_lead.api:app` on the
+      # host during dev. Default 8002 so it doesn't collide with CRM (8000)
+      # or Evorove (8001); if nothing is listening there, the outcome
+      # report on Done/drop just fails silently (same as any other
+      # best-effort outbound call in this repo).
+      EVOROVE_LEAD_BASE_URL: http://host.docker.internal:${EVOROVE_LEAD_HOST_PORT:-8002}
     ports:
       - "${APP_PORT:-8000}:8000"
     depends_on:
