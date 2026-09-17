@@ -192,7 +192,7 @@ export default function Board() {
         <header className="px-6 md:px-8 py-4 border-b border-line">
           <h1 className="text-xl font-semibold">People</h1>
           <p className="text-sm text-mute mt-0.5">
-            Every touch from search and sale lands here. Tomorrow stays the booked hours.
+            Each step lands here as it happens. Open a person to read the dialogue, not only the status.
           </p>
         </header>
         <div className="px-6 md:px-8 pt-4 flex gap-2 flex-wrap">
@@ -299,6 +299,16 @@ export default function Board() {
                         Cycle {touch.cycle} · {touch.kind.replace(/_/g, " ")}
                       </div>
                       <div className="text-sm mt-0.5">{touch.summary}</div>
+                      {typeof touch.payload.customer_text === "string" && touch.payload.customer_text && (
+                        <div className="text-sm mt-2 px-3 py-2 rounded-xl" style={{ backgroundColor: "#F1F1EF" }}>
+                          {touch.payload.customer_text}
+                        </div>
+                      )}
+                      {typeof touch.payload.engine_text === "string" && touch.payload.engine_text && (
+                        <div className="text-sm mt-2 px-3 py-2 rounded-xl" style={{ backgroundColor: "#FFE4D6" }}>
+                          {touch.payload.engine_text}
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ol>
