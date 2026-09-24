@@ -57,6 +57,10 @@ class Settings:
     # entirely, not "open" -- see that route for the check.
     internal_task_secret: str | None = field(default=None, repr=False)
     evorove_base_url: str | None = None
+    # Cycle 1 (evorove_lead) API, EVOROVE_LEAD_BASE_URL: the owner's "find
+    # people" button asks it to search (roadmap step 20), and outcomes are
+    # reported there. None = the button reports "not set up".
+    lead_base_url: str | None = None
     # Required only when the owner enables authenticator-app 2FA. It has no
     # development default: an operator must provide high-entropy key material
     # before the server may retain an encrypted TOTP seed.
@@ -223,6 +227,9 @@ class Settings:
                     os.getenv("EVOROVE_BASE_URL").rstrip("/")
                     if os.getenv("EVOROVE_BASE_URL")
                     else None
+                ),
+                lead_base_url=(
+                    os.getenv("EVOROVE_LEAD_BASE_URL").rstrip("/") if os.getenv("EVOROVE_LEAD_BASE_URL") else None
                 ),
                 account_security_encryption_key=os.getenv("ACCOUNT_SECURITY_ENCRYPTION_KEY"),
                 smtp_host=os.getenv("SMTP_HOST"), smtp_port=smtp_port,

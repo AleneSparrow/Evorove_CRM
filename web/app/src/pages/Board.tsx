@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Loader2, Mail, Pause, Phone, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { Loader2, Mail, Pause, Phone, Search, Trash2 } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 import { useAuth, describeError } from "../auth/AuthContext";
 import {
@@ -7,6 +7,7 @@ import {
   type BoardPerson,
   type BoardPersonDetail,
   type BoardTab,
+  type LeadSearchStatus,
 } from "../api/client";
 
 const TABS: { id: BoardTab; label: string }[] = [
@@ -15,6 +16,95 @@ const TABS: { id: BoardTab; label: string }[] = [
   { id: "offer_sent", label: "Offer made" },
   { id: "done", label: "Done" },
 ];
+
+const SEARCH_ACTIVE = new Set(["queued", "running"]);
+
+function searchMessage(search: LeadSearchStatus | null): string {
+  if (!search || search.status === "never_run") {
+    return "Paste your website and we will look for people who need what you sell.";
+  }
+  if (search.status === "not_set_up") return "People search isn't connected yet.";
+  if (SEARCH_ACTIVE.has(search.status)) return "Searching from your site… new people will appear on Cold.";
+  if (search.status === "failed") return "The last search didn't finish. Try again.";
+  const when = search.last_run_at ? new Date(search.last_run_at).toLocaleString("en-US") : "";
+  if (search.cold > 0) return `Last search found ${search.cold} new ${search.cold === 1 ? "person" : "people"}${when ? ` · ${when}` : ""}.`;
+  return `Last search found nobody new who fits${when ? ` · ${when}` : ""}. We search again every day.`;
+}
+
+function FindPeople({ onFound }: { onFound: () => void }) {
+  const { token, businessId } = useAuth();
+  const [search, setSearch] = useState<LeadSearchStatus | null>(null);
+  const [siteUrl, setSiteUrl] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (!token || !businessId) return;
+    api
+      .getLeadSearch(token, businessId)
+      .then((res) => {
+        setSearch(res);
+        if (res.site_url) setSiteUrl((current) => current || res.site_url || "");
+      })
+      .catch(() => setSearch(null));
+  }, [token, businessId]);
+
+  useEffect(() => {
+    if (!token || !businessId || !search || !SEARCH_ACTIVE.has(search.status)) return;
+    const timer = window.setTimeout(() => {
+      api
+        .getLeadSearch(token, businessId)
+        .then((res) => {
+          setSearch(res);
+          if (!SEARCH_ACTIVE.has(res.status)) onFound();
+        })
+        .catch((err) => setError(describeError(err)));
+    }, 5000);
+    return () => window.clearTimeout(timer);
+  }, [token, businessId, search, onFound]);
+
+  async function start(event: FormEvent) {
+    event.preventDefault();
+    if (!token || !businessId || !siteUrl.trim()) return;
+    setSending(true);
+    setError(null);
+    try {
+      setSearch(await api.startLeadSearch(token, businessId, siteUrl.trim()));
+    } catch (err) {
+      setError(describeError(err));
+    } finally {
+      setSending(false);
+    }
+  }
+
+  const active = !!search && SEARCH_ACTIVE.has(search.status);
+  const disabled = sending || active || search?.status === "not_set_up";
+  return (
+    <form onSubmit={start} className="mx-6 md:mx-8 mt-4 p-4 rounded-2xl border border-line bg-white flex flex-col gap-3">
+      <div className="flex flex-col sm:flex-row gap-2">
+        <input
+          type="url"
+          required
+          value={siteUrl}
+          onChange={(event) => setSiteUrl(event.target.value)}
+          placeholder="https://your-business.com"
+          aria-label="Your website"
+          className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-line text-sm"
+        />
+        <button
+          type="submit"
+          disabled={disabled}
+          className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+          style={{ backgroundColor: "#C6FF00", color: "#0B0B0D" }}
+        >
+          {active || sending ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+          Find people
+        </button>
+      </div>
+      <p className="text-xs text-mute">{error ?? searchMessage(search)}</p>
+    </form>
+  );
+}
 
 function personLabel(person: BoardPerson): string {
   return person.name || person.email || person.phone || "Person";
@@ -28,6 +118,8 @@ export default function Board() {
   const [detail, setDetail] = useState<BoardPersonDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reloadPeople = useCallback(() => setReloadKey((key) => key + 1), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,7 +143,7 @@ export default function Board() {
     return () => {
       cancelled = true;
     };
-  }, [token, businessId, tab]);
+  }, [token, businessId, tab, reloadKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,6 +212,7 @@ export default function Board() {
             </button>
           ))}
         </div>
+        {tab === "cold" && <FindPeople onFound={reloadPeople} />}
         {error && (
           <div className="mx-6 md:mx-8 mt-4 px-4 py-3 rounded-lg text-sm" style={{ backgroundColor: "#FBEBE9", color: "#8A3225" }}>
             {error}

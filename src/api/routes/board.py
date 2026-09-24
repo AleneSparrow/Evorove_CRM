@@ -3,11 +3,13 @@
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Header, Query, Request
+from pydantic import BaseModel, Field
 
 from src.domain.auth import StaffUser
 from src.domain.lead_touch import BoardCommandAction, BoardTab, LeadTouch, LeadTouchRejected
 from src.domain.tenancy import Business
 from src.persistence.errors import IdempotencyCollisionError
+from src.persistence.lead_search_client import LeadSearchClient, LeadSearchError
 from src.persistence.lead_touch_service import PersistentLeadTouchService
 
 from ..dependencies import (
@@ -19,7 +21,7 @@ from ..dependencies import (
     require_own_business,
     resolve_business,
 )
-from ..errors import ConflictError, RequestDataError, ResourceNotFoundError
+from ..errors import ConflictError, PublicApiError, RequestDataError, ResourceNotFoundError
 from ..schemas import (
     BoardCommandRequest,
     BoardCommandSchema,
@@ -205,3 +207,53 @@ def issue_board_command(
         created_at=command.created_at,
         payload=dict(command.payload),
     )
+
+
+class LeadSearchRequest(BaseModel):
+    site_url: str = Field(min_length=4, max_length=2048)
+
+
+def _lead_search_client(container: ApplicationContainer) -> LeadSearchClient:
+    return LeadSearchClient(container.settings.lead_base_url, container.settings.internal_task_secret)
+
+
+def _search_view(business_id: str, data: dict | None) -> dict[str, object]:
+    if data is None:
+        return {"business_id": business_id, "status": "never_run", "site_url": None, "cold": 0, "last_run_at": None}
+    return {
+        "business_id": business_id,
+        "status": data.get("status"),
+        "site_url": data.get("site_url"),
+        "cold": data.get("cold", 0),
+        "last_run_at": data.get("last_run_at"),
+    }
+
+
+@router.post("/search", summary="Find people for Cold: cycle 1 searches from the owner's site")
+def start_lead_search(
+    business_id: BusinessIdPath,
+    body: LeadSearchRequest,
+    user: Annotated[object, Depends(require_own_business)],
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+) -> dict[str, object]:
+    del user
+    try:
+        return _search_view(business_id, _lead_search_client(container).start(business_id, body.site_url.strip()))
+    except LeadSearchError as exc:
+        raise PublicApiError(exc.status, "lead_search_unavailable" if exc.status != 422 else "invalid_site_url", exc.message) from exc
+
+
+@router.get("/search", summary="Status of the last people search")
+def get_lead_search(
+    business_id: BusinessIdPath,
+    user: Annotated[object, Depends(require_own_business)],
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+) -> dict[str, object]:
+    del user
+    client = _lead_search_client(container)
+    if not client.configured:
+        return {**_search_view(business_id, None), "status": "not_set_up"}
+    try:
+        return _search_view(business_id, client.status(business_id))
+    except LeadSearchError as exc:
+        raise PublicApiError(exc.status, "lead_search_unavailable", exc.message) from exc

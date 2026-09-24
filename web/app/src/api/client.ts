@@ -841,6 +841,16 @@ export const api = {
       token,
     ),
 
+  getLeadSearch: (token: string, businessId: string) =>
+    request<LeadSearchStatus>(`/api/v1/businesses/${businessId}/board/search`, { method: "GET" }, token),
+
+  startLeadSearch: (token: string, businessId: string, siteUrl: string) =>
+    request<LeadSearchStatus>(
+      `/api/v1/businesses/${businessId}/board/search`,
+      { method: "POST", body: JSON.stringify({ site_url: siteUrl }) },
+      token,
+    ),
+
   listBoard: (token: string, businessId: string, tab: BoardTab) =>
     request<BoardListResponse>(
       `/api/v1/businesses/${businessId}/board?tab=${encodeURIComponent(tab)}`,
@@ -872,6 +882,14 @@ export const api = {
 export { API_BASE };
 
 export type BoardTab = "cold" | "in_work" | "offer_sent" | "done";
+
+export interface LeadSearchStatus {
+  business_id: string;
+  status: string; // never_run | not_set_up | queued | running | people_found | no_fit | failed | ...
+  site_url: string | null;
+  cold: number;
+  last_run_at: string | null;
+}
 
 export interface BoardPerson {
   person_id: string;
