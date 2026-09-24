@@ -105,6 +105,8 @@ class PersistentLeadTouchService:
                 version=0,
             )
             uow.board.add_person(person, created_at=occurred)
+            if touch.kind is LeadTouchKind.ASSEMBLED and person.tab is BoardTab.COLD:
+                _hand_cold_person_to_cycle_two(uow, person, touch, occurred)
         else:
             expected = person.version
             tab = next_board_tab(person.tab, touch.kind)
@@ -372,3 +374,44 @@ def _optional_overwrite(current: str | None, incoming: Any) -> str | None:
     if not isinstance(incoming, str) or not incoming.strip():
         return current
     return incoming.strip()
+
+
+def _hand_cold_person_to_cycle_two(uow: UnitOfWork, person: BoardPerson, touch: LeadTouch, now: datetime) -> None:
+    """A new person on Cold is cycle 2's to write to (FOUNDATION.md: cycle 2
+    writes to the person from the Cold tab). Delivered on the same durable
+    command channel as owner commands, action `cold_assigned`."""
+
+    session = getattr(uow, "session", None)
+    if session is None or not (person.email or person.phone):
+        return
+    outbox_id = f"cycle-command:cold:{person.business_id}:{person.person_id}"
+    if session.get(IntegrationOutboxRow, outbox_id) is not None:
+        return
+    payload = dict(touch.payload)
+    session.add(
+        IntegrationOutboxRow(
+            id=outbox_id,
+            business_id=person.business_id,
+            kind=CYCLE_COMMAND_OUTBOX_KIND,
+            payload={
+                "command_id": f"cold:{person.person_id}",
+                "person_id": person.person_id,
+                "action": "cold_assigned",
+                "payload": {
+                    "reason": str(payload.get("reason") or touch.summary),
+                    "reason_source": str(payload.get("reason_source") or ""),
+                    "channel": str(payload.get("channel") or ("email" if person.email else "sms")),
+                    "hypothesis_id": str(payload.get("hypothesis_id") or ""),
+                },
+                "phone": person.phone,
+                "email": person.email,
+                "name": person.name,
+            },
+            status="PENDING",
+            attempt_count=0,
+            next_attempt_at=now,
+            last_error=None,
+            created_at=now,
+            updated_at=now,
+        )
+    )

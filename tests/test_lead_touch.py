@@ -231,3 +231,23 @@ def test_internal_touch_and_staff_board(tmp_path: Path) -> None:
         assert command.status_code == 200
         assert command.json()["action"] == "pause_outreach"
     engine.dispose()
+
+
+def test_new_cold_person_is_handed_to_cycle_two_once(factory) -> None:
+    from sqlalchemy import select
+
+    from src.persistence.lead_touch_service import CYCLE_COMMAND_OUTBOX_KIND
+    from src.persistence.sqlalchemy_models import IntegrationOutboxRow
+
+    service = PersistentLeadTouchService(factory)
+    service.accept(_assembled())
+    service.accept(_assembled(touch_id="cycle1:jordan:again"))
+    with factory() as uow:
+        rows = uow.session.scalars(
+            select(IntegrationOutboxRow).where(IntegrationOutboxRow.kind == CYCLE_COMMAND_OUTBOX_KIND)
+        ).all()
+        payloads = [row.payload for row in rows]
+    assert len(payloads) == 1
+    assert payloads[0]["action"] == "cold_assigned"
+    assert payloads[0]["email"] == "jordan@example.com"
+    assert payloads[0]["payload"]["reason"]

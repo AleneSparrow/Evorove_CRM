@@ -75,7 +75,7 @@ class CycleCommandDeliveryService:
                 row.last_error = "evorove_not_configured"
                 row.updated_at = now
                 if command_id:
-                    uow.board.mark_command_status(row.business_id, command_id, "failed", now=now)
+                    _mark_command(uow, row.business_id, command_id, "failed", now=now)
                 uow.commit()
                 return False
             url = urljoin(
@@ -87,7 +87,7 @@ class CycleCommandDeliveryService:
                 row.status = "SENT"
                 row.updated_at = now
                 if command_id:
-                    uow.board.mark_command_status(
+                    _mark_command(uow, 
                         row.business_id, command_id, "delivered", now=now
                     )
                 uow.commit()
@@ -98,7 +98,7 @@ class CycleCommandDeliveryService:
             if row.attempt_count >= _MAX_ATTEMPTS:
                 row.status = "FAILED"
                 if command_id:
-                    uow.board.mark_command_status(row.business_id, command_id, "failed", now=now)
+                    _mark_command(uow, row.business_id, command_id, "failed", now=now)
             else:
                 row.next_attempt_at = now + _BACKOFF
             uow.commit()
@@ -125,3 +125,12 @@ def _post_command(url: str, secret: str, payload: dict[str, Any]) -> tuple[bool,
     except urllib.error.URLError as exc:
         LOGGER.warning("cycle_command_url_error url=%s error=%s", url, exc.reason)
         return False, "unreachable"
+
+
+def _mark_command(uow, business_id: str, command_id: str, status: str, *, now) -> None:  # noqa: ANN001
+    """Owner commands have a board_commands row; system hand-offs such as
+    `cold_assigned` ride the same channel without one."""
+    try:
+        uow.board.mark_command_status(business_id, command_id, status, now=now)
+    except KeyError:
+        pass
