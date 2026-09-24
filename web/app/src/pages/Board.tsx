@@ -203,7 +203,7 @@ export default function Board() {
                   {detail.touches.map((touch) => (
                     <li key={touch.touch_id} className="border-l-2 border-line pl-3">
                       <div className="text-xs uppercase tracking-wide text-clay">
-                        Cycle {touch.cycle} · {touch.kind.replaceAll("_", " ")}
+                        Cycle {touch.cycle} · {touch.kind.replace(/_/g, " ")}
                       </div>
                       <div className="text-sm mt-0.5">{touch.summary}</div>
                     </li>
