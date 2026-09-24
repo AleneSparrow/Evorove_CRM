@@ -251,3 +251,4 @@ def test_new_cold_person_is_handed_to_cycle_two_once(factory) -> None:
     assert payloads[0]["action"] == "cold_assigned"
     assert payloads[0]["email"] == "jordan@example.com"
     assert payloads[0]["payload"]["reason"]
+    assert payloads[0]["payload"]["channel"] != "sms"
