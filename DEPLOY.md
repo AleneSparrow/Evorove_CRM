@@ -58,9 +58,10 @@ launch, only mentioned in case you already have a Render account.)
      and cycle 1 (`evorove_lead`).
    - `EVOROVE_BASE_URL` — public origin of cycle 2, no trailing slash.
    - `EVOROVE_LEAD_BASE_URL` — public origin of cycle 1's own API, no
-     trailing slash. Optional: unset means the hypothesis_id -> outcome
-     report on Done/drop (phase 3) is silently skipped, nothing else
-     breaks.
+     trailing slash. Needed for the board's **Find people** button (the
+     owner pastes her site, cycle 1 searches, people land on Cold). Unset:
+     the button says search is not connected, and the hypothesis_id ->
+     outcome report on Done/drop (phase 3) is silently skipped.
    - `LOG_LEVEL` = `INFO` (optional, this is already the default)
 4. Deploy. Railway builds the Docker image (including the staff UI), runs
    `alembic upgrade head` once as a pre-deploy step, then starts the app
