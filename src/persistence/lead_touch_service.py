@@ -400,7 +400,10 @@ def _hand_cold_person_to_cycle_two(uow: UnitOfWork, person: BoardPerson, touch: 
                 "payload": {
                     "reason": str(payload.get("reason") or touch.summary),
                     "reason_source": str(payload.get("reason_source") or ""),
-                    "channel": str(payload.get("channel") or ("email" if person.email else "sms")),
+                    # Cold people are never texted (TCPA): an older cycle 1 "sms" means "phone".
+                    "channel": {"sms": "phone"}.get(
+                        str(payload.get("channel") or ""), str(payload.get("channel") or "")
+                    ) or ("email" if person.email else "phone"),
                     "hypothesis_id": str(payload.get("hypothesis_id") or ""),
                 },
                 "phone": person.phone,
