@@ -151,6 +151,20 @@ def test_owner_discard_leaves_active_board(factory) -> None:
     assert commands[0].action.value == "discard"
 
 
+def test_discarded_person_found_again_stays_off_cold(factory) -> None:
+    service = PersistentLeadTouchService(factory)
+    accepted = service.accept(_assembled())
+    service.issue_command(
+        "tenant-a", accepted.person_id, BoardCommandAction.DISCARD, approved_by="owner@example.com"
+    )
+    again = service.accept(_assembled(touch_id="cycle1:jordan:again"))
+    assert again.person_id == accepted.person_id
+    assert service.list_tab("tenant-a", BoardTab.COLD) == ()
+    person, touches, _ = service.get_person("tenant-a", accepted.person_id)
+    assert person.tab is BoardTab.DISCARDED
+    assert "cycle1:jordan:again" in {touch.touch_id for touch in touches}  # recorded, not re-activated
+
+
 def test_internal_touch_and_staff_board(tmp_path: Path) -> None:
     database_url = f"sqlite+pysqlite:///{tmp_path / 'board-api.db'}"
     engine = create_database_engine(database_url)

@@ -138,8 +138,8 @@ def next_board_tab(current: BoardTab, kind: LeadTouchKind) -> BoardTab:
     if target is BoardTab.DISCARDED:
         return BoardTab.DISCARDED
     if current is BoardTab.DISCARDED:
-        if kind is LeadTouchKind.ASSEMBLED:
-            return BoardTab.COLD
+        # The owner took this person off the board. Cycle 1 finding them again
+        # is recorded on the timeline but never puts them back on Cold.
         return BoardTab.DISCARDED
     if target is None:
         return current
