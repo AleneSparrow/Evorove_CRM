@@ -397,3 +397,17 @@ def internal_get_lead_search(
         return _search_view(business_id, client.status(business_id))
     except LeadSearchError as exc:
         raise PublicApiError(exc.status, "lead_search_unavailable", exc.message) from exc
+
+
+
+@internal_router.post("/lead-searches/run-due", summary="Daily cron: cycle 1 re-searches every remembered site")
+def run_due_lead_searches(
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+    x_internal_task_secret: Annotated[str | None, Header()] = None,
+) -> dict[str, object]:
+    # Cycle 1 has no public address; the scheduler reaches it through here.
+    _require_task_secret(container, x_internal_task_secret)
+    try:
+        return _lead_search_client(container).run_due()
+    except LeadSearchError as exc:
+        raise PublicApiError(exc.status, "lead_search_unavailable", exc.message) from exc

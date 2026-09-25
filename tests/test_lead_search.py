@@ -31,7 +31,9 @@ class FakeLead:
         self.calls.append((request.get_method(), request.full_url, body, request.get_header("X-internal-task-secret")))
         if self.fail is not None:
             raise self.fail
-        if request.get_method() == "POST":
+        if request.full_url.endswith("/run-due"):
+            payload = {"ran": 1, "cold": 2}
+        elif request.get_method() == "POST":
             payload = {"business_id": "tenant-a", "site_url": body["site_url"], "status": "queued", "cold": 0, "last_run_at": None}
         else:
             payload = {"business_id": "tenant-a", "site_url": "https://acme-heating.com/", "status": "people_found", "cold": 4,
@@ -99,4 +101,15 @@ def test_not_set_up_without_lead_url(tmp_path, monkeypatch) -> None:
         assert client.get("/api/v1/businesses/tenant-a/board/search", headers=headers).json()["status"] == "not_set_up"
         refused = client.post("/api/v1/businesses/tenant-a/board/search", json={"site_url": "https://a.com"}, headers=headers)
         assert refused.status_code == 503 and fake.calls == []
+    engine.dispose()
+
+
+
+def test_cron_reaches_cycle_one_run_due_through_the_crm(tmp_path, monkeypatch) -> None:
+    app, factory, fake, engine = _world(tmp_path, monkeypatch)
+    with TestClient(app, raise_server_exceptions=False) as client:
+        assert client.post("/api/v1/internal/lead-searches/run-due").status_code == 401
+        done = client.post("/api/v1/internal/lead-searches/run-due", headers={"X-Internal-Task-Secret": SECRET})
+        assert done.status_code == 200 and done.json() == {"ran": 1, "cold": 2}
+        assert fake.calls[-1][:2] == ("POST", "https://lead.internal/api/v1/internal/searches/run-due")
     engine.dispose()
