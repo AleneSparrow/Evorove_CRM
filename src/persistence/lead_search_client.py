@@ -37,6 +37,10 @@ class LeadSearchClient:
     def start(self, business_id: str, site_url: str) -> dict[str, Any]:
         return self._call("POST", "/api/v1/internal/searches", {"business_id": business_id, "site_url": site_url})
 
+    def run_due(self) -> dict[str, Any]:
+        """Daily re-search of every remembered site (cycle 1's run-due)."""
+        return self._call("POST", "/api/v1/internal/searches/run-due", {})
+
     def status(self, business_id: str) -> dict[str, Any] | None:
         try:
             return self._call("GET", f"/api/v1/internal/searches/{urllib.parse.quote(business_id, safe='')}", None)
