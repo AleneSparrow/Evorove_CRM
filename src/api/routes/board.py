@@ -1,5 +1,6 @@
 """Owner board: lead touches in, four tabs out, commands back to cycle engines."""
 
+from datetime import datetime, timezone
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Header, Query, Request
@@ -250,6 +251,145 @@ def get_lead_search(
     container: Annotated[ApplicationContainer, Depends(get_container)],
 ) -> dict[str, object]:
     del user
+    client = _lead_search_client(container)
+    if not client.configured:
+        return {**_search_view(business_id, None), "status": "not_set_up"}
+    try:
+        return _search_view(business_id, client.status(business_id))
+    except LeadSearchError as exc:
+        raise PublicApiError(exc.status, "lead_search_unavailable", exc.message) from exc
+
+
+
+# --- The board as a tab of evorove.com -------------------------------------
+# The owner signs in and pays on evorove.com (the Evorove service). Its
+# "People" tab reads and drives this board through these internal routes,
+# behind the same INTERNAL_TASK_SECRET. The CRM has no site of its own.
+
+
+class EnsureBusinessRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+
+
+class InternalCommandRequest(BoardCommandRequest):
+    approved_by: str = Field(min_length=1, max_length=320)
+
+
+def _detail_response(service: PersistentLeadTouchService, business_id: str, person_id: str) -> BoardPersonDetailResponse:
+    try:
+        person, touches, commands = service.get_person(business_id, person_id)
+    except KeyError as exc:
+        raise ResourceNotFoundError("person_not_found", "Person was not found") from exc
+    return BoardPersonDetailResponse(
+        person=_person_schema(person),
+        touches=tuple(
+            BoardTouchSchema(
+                touch_id=item.touch_id, cycle=item.cycle, kind=item.kind.value, source=item.source,
+                summary=item.summary, occurred_at=item.occurred_at,
+                payload={key: value for key, value in dict(item.payload).items() if key != "fingerprint"},
+            )
+            for item in touches
+        ),
+        commands=tuple(
+            BoardCommandSchema(
+                command_id=item.command_id, action=item.action.value, status=item.status,
+                created_at=item.created_at, payload=dict(item.payload),
+            )
+            for item in commands
+        ),
+    )
+
+
+@internal_router.put("/businesses/{business_id}", summary="Make sure evorove.com's business has a board")
+def ensure_business(
+    business_id: BusinessIdPath,
+    body: EnsureBusinessRequest,
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+    x_internal_task_secret: Annotated[str | None, Header()] = None,
+) -> dict[str, object]:
+    _require_task_secret(container, x_internal_task_secret)
+    now = datetime.now(timezone.utc)
+    with container.unit_of_work_factory() as uow:
+        existing = uow.businesses.get(business_id)
+        if existing is None:
+            # Billing lives on evorove.com; the board itself is never gated here.
+            uow.businesses.add(Business(business_id, body.name, now, now, plan="starter", subscription_status="active"))
+            uow.commit()
+    return {"business_id": business_id, "created": existing is None}
+
+
+@internal_router.get("/businesses/{business_id}/board", response_model=BoardListResponse)
+def internal_list_board(
+    business_id: BusinessIdPath,
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+    service: Annotated[PersistentLeadTouchService, Depends(get_lead_touch_service)],
+    tab: Annotated[Literal["cold", "in_work", "offer_sent", "done"], Query()] = "cold",
+    x_internal_task_secret: Annotated[str | None, Header()] = None,
+) -> BoardListResponse:
+    _require_task_secret(container, x_internal_task_secret)
+    try:
+        people = service.list_tab(business_id, BoardTab(tab))
+    except KeyError as exc:
+        raise ResourceNotFoundError("business_not_found", "Business was not found") from exc
+    return BoardListResponse(tab=tab, people=tuple(_person_schema(item) for item in people))
+
+
+@internal_router.get("/businesses/{business_id}/board/people/{person_id}", response_model=BoardPersonDetailResponse)
+def internal_get_board_person(
+    business_id: BusinessIdPath,
+    person_id: str,
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+    service: Annotated[PersistentLeadTouchService, Depends(get_lead_touch_service)],
+    x_internal_task_secret: Annotated[str | None, Header()] = None,
+) -> BoardPersonDetailResponse:
+    _require_task_secret(container, x_internal_task_secret)
+    return _detail_response(service, business_id, person_id)
+
+
+@internal_router.post("/businesses/{business_id}/board/people/{person_id}/commands", response_model=BoardCommandSchema)
+def internal_issue_board_command(
+    business_id: BusinessIdPath,
+    person_id: str,
+    payload: InternalCommandRequest,
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+    service: Annotated[PersistentLeadTouchService, Depends(get_lead_touch_service)],
+    x_internal_task_secret: Annotated[str | None, Header()] = None,
+) -> BoardCommandSchema:
+    _require_task_secret(container, x_internal_task_secret)
+    fields = {key: value for key, value in {"name": payload.name, "phone": payload.phone, "email": payload.email}.items() if value}
+    try:
+        command = service.issue_command(
+            business_id, person_id, BoardCommandAction(payload.action), fields, approved_by=payload.approved_by
+        )
+    except KeyError as exc:
+        raise ResourceNotFoundError("person_not_found", "Person was not found") from exc
+    return BoardCommandSchema(
+        command_id=command.command_id, action=command.action.value, status=command.status,
+        created_at=command.created_at, payload=dict(command.payload),
+    )
+
+
+@internal_router.post("/businesses/{business_id}/board/search")
+def internal_start_lead_search(
+    business_id: BusinessIdPath,
+    body: LeadSearchRequest,
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+    x_internal_task_secret: Annotated[str | None, Header()] = None,
+) -> dict[str, object]:
+    _require_task_secret(container, x_internal_task_secret)
+    try:
+        return _search_view(business_id, _lead_search_client(container).start(business_id, body.site_url.strip()))
+    except LeadSearchError as exc:
+        raise PublicApiError(exc.status, "lead_search_unavailable" if exc.status != 422 else "invalid_site_url", exc.message) from exc
+
+
+@internal_router.get("/businesses/{business_id}/board/search")
+def internal_get_lead_search(
+    business_id: BusinessIdPath,
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+    x_internal_task_secret: Annotated[str | None, Header()] = None,
+) -> dict[str, object]:
+    _require_task_secret(container, x_internal_task_secret)
     client = _lead_search_client(container)
     if not client.configured:
         return {**_search_view(business_id, None), "status": "not_set_up"}

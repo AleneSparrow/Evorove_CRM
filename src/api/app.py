@@ -3,10 +3,11 @@
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
@@ -94,6 +95,19 @@ def _maybe_run_migrations_on_startup(runtime_settings: Settings) -> None:
 _STAFF_UI_RESERVED = frozenset(
     {"api", "widget", "health", "ready", "docs", "redoc", "openapi.json"}
 )
+
+
+def _redirect_pages_to_site(application: FastAPI, site_url: str) -> None:
+    """The CRM is a tab of the owner's site, not a site: pages go there."""
+
+    target = f"{site_url}/app/people"
+
+    @application.get("/{full_path:path}", include_in_schema=False)
+    def to_site(full_path: str) -> RedirectResponse:
+        first = full_path.split("/", 1)[0]
+        if first in _STAFF_UI_RESERVED or full_path in _STAFF_UI_RESERVED:
+            raise HTTPException(status_code=404)
+        return RedirectResponse(target, status_code=308)
 
 
 def _mount_staff_ui(application: FastAPI, dist: Path) -> None:
@@ -249,7 +263,10 @@ def create_app(
         name="widget",
     )
     skip_auto_ui = settings is not None and settings.app_env.casefold() == "test"
-    if staff_ui_dist is not None:
+    site_url = (settings.public_site_url if settings is not None else os.getenv("PUBLIC_SITE_URL")) or ""
+    if site_url.strip():
+        _redirect_pages_to_site(application, site_url.strip().rstrip("/"))
+    elif staff_ui_dist is not None:
         _mount_staff_ui(application, staff_ui_dist)
     elif not skip_auto_ui:
         _mount_staff_ui(application, Path(__file__).parents[2] / "web" / "app" / "dist")

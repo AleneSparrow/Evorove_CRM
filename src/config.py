@@ -61,6 +61,9 @@ class Settings:
     # people" button asks it to search (roadmap step 20), and outcomes are
     # reported there. None = the button reports "not set up".
     lead_base_url: str | None = None
+    # The owner's one site (https://evorove.com). When set, the CRM has no
+    # pages of its own: every page request is sent to the People tab there.
+    public_site_url: str | None = None
     # Required only when the owner enables authenticator-app 2FA. It has no
     # development default: an operator must provide high-entropy key material
     # before the server may retain an encrypted TOTP seed.
@@ -227,6 +230,9 @@ class Settings:
                     os.getenv("EVOROVE_BASE_URL").rstrip("/")
                     if os.getenv("EVOROVE_BASE_URL")
                     else None
+                ),
+                public_site_url=(
+                    os.getenv("PUBLIC_SITE_URL").rstrip("/") if os.getenv("PUBLIC_SITE_URL") else None
                 ),
                 lead_base_url=(
                     os.getenv("EVOROVE_LEAD_BASE_URL").rstrip("/") if os.getenv("EVOROVE_LEAD_BASE_URL") else None
