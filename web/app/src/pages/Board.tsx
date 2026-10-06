@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Loader2, Mail, Pause, Phone, Search, Trash2 } from "lucide-react";
+import { Loader2, Mail, Phone, Search } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 import { useAuth, describeError } from "../auth/AuthContext";
 import {
@@ -117,7 +117,6 @@ export default function Board() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<BoardPersonDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const reloadPeople = useCallback(() => setReloadKey((key) => key + 1), []);
 
@@ -163,27 +162,6 @@ export default function Board() {
       cancelled = true;
     };
   }, [token, businessId, selectedId]);
-
-  async function runCommand(action: "discard" | "pause_outreach" | "takeover") {
-    if (!token || !businessId || !selectedId) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await api.issueBoardCommand(token, businessId, selectedId, action);
-      const listed = await api.listBoard(token, businessId, tab);
-      setPeople(listed.people);
-      if (!listed.people.some((person) => person.person_id === selectedId)) {
-        setSelectedId(listed.people[0]?.person_id ?? null);
-        setDetail(null);
-      } else {
-        setDetail(await api.getBoardPerson(token, businessId, selectedId));
-      }
-    } catch (err) {
-      setError(describeError(err));
-    } finally {
-      setBusy(false);
-    }
-  }
 
   return (
     <div className="ev-page min-h-screen w-full flex">
@@ -254,10 +232,10 @@ export default function Board() {
               <p className="text-sm text-mute">Select a person to see every touch.</p>
             ) : (
               <>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
+                <div>
                     <h2 className="text-lg font-semibold">{personLabel(detail.person)}</h2>
                     <p className="text-sm text-mute mt-1">{detail.person.summary}</p>
+                    <p className="text-xs text-mute mt-1">Watch only. The engine writes.</p>
                     <div className="mt-3 flex flex-wrap gap-4 text-xs text-mute">
                       {detail.person.phone && (
                         <span className="flex items-center gap-1.5">
@@ -270,27 +248,6 @@ export default function Board() {
                         </span>
                       )}
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => runCommand("pause_outreach")}
-                      className="p-2 rounded-lg border border-line text-mute hover:text-ink"
-                      title="Pause outreach"
-                    >
-                      <Pause size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => runCommand("discard")}
-                      className="p-2 rounded-lg border border-line text-mute hover:text-ink"
-                      title="Remove from the board"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
                 </div>
                 <ol className="mt-6 flex flex-col gap-3">
                   {detail.touches.map((touch) => (

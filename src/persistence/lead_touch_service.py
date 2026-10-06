@@ -405,6 +405,7 @@ def _hand_cold_person_to_cycle_two(uow: UnitOfWork, person: BoardPerson, touch: 
                         str(payload.get("channel") or ""), str(payload.get("channel") or "")
                     ) or ("email" if person.email else "phone"),
                     "hypothesis_id": str(payload.get("hypothesis_id") or ""),
+                    "segment": str(payload.get("segment") or ""),
                 },
                 "phone": person.phone,
                 "email": person.email,
