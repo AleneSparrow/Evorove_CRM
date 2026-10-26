@@ -1027,6 +1027,8 @@ class BoardPersonRow(Base):
     phone: Mapped[str | None] = mapped_column(String(64))
     email: Mapped[str | None] = mapped_column(String(320))
     summary: Mapped[str] = mapped_column(Text, nullable=False)
+    observed_pain: Mapped[str | None] = mapped_column(Text)
+    pain_status: Mapped[str] = mapped_column(String(32), nullable=False, default="none", server_default="none")
     last_kind: Mapped[str] = mapped_column(String(32), nullable=False)
     last_cycle: Mapped[int] = mapped_column(Integer, nullable=False)
     last_touch_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -1039,6 +1041,10 @@ class BoardPersonRow(Base):
         CheckConstraint(
             "tab IN ('cold','in_work','offer_sent','done','discarded')",
             name="ck_board_people_tab",
+        ),
+        CheckConstraint(
+            "observed_pain IS NULL OR length(observed_pain) <= 500",
+            name="ck_board_people_observed_pain_length",
         ),
         CheckConstraint("version >= 0", name="ck_board_people_version_nonnegative"),
         Index("ix_board_people_business_tab", "business_id", "tab", "last_touch_at"),

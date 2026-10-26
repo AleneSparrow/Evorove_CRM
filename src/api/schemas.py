@@ -1499,6 +1499,8 @@ class BoardPersonSchema(ApiModel):
     phone: str | None
     email: str | None
     summary: str
+    observed_pain: str | None = None
+    pain_status: str = "none"
     last_kind: str
     last_cycle: int
     last_touch_at: datetime

@@ -6,6 +6,7 @@ import json
 import logging
 import urllib.error
 import urllib.request
+from dataclasses import replace
 from datetime import timedelta
 from typing import Any
 from urllib.parse import urljoin
@@ -13,7 +14,7 @@ from urllib.parse import urljoin
 from sqlalchemy import select
 
 from src.domain.models import utc_now
-from src.persistence.lead_touch_service import CYCLE_COMMAND_OUTBOX_KIND
+from src.persistence.lead_touch_service import CYCLE_COMMAND_OUTBOX_KIND, PAIN_STATUS_CYCLE_TWO_REJECTED
 from src.persistence.repositories import UnitOfWorkFactory
 from src.persistence.sqlalchemy_models import IntegrationOutboxRow
 
@@ -95,7 +96,17 @@ class CycleCommandDeliveryService:
             row.attempt_count += 1
             row.last_error = (error or "delivery_failed")[:255]
             row.updated_at = now
-            if row.attempt_count >= _MAX_ATTEMPTS:
+            if error == "observed_pain_not_grounded" and row.payload.get("action") == "cold_assigned":
+                person_id = str(row.payload.get("person_id") or "")
+                person = uow.board.get_person(row.business_id, person_id, for_update=True) if person_id else None
+                if person is not None and person.observed_pain:
+                    uow.board.save_person(
+                        replace(person, pain_status=PAIN_STATUS_CYCLE_TWO_REJECTED),
+                        person.version,
+                        updated_at=now,
+                    )
+                row.status = "FAILED"  # The same invalid pain must not loop through retries.
+            elif row.attempt_count >= _MAX_ATTEMPTS:
                 row.status = "FAILED"
                 if command_id:
                     _mark_command(uow, row.business_id, command_id, "failed", now=now)
@@ -121,6 +132,14 @@ def _post_command(url: str, secret: str, payload: dict[str, Any]) -> tuple[bool,
             return 200 <= response.status < 300, None
     except urllib.error.HTTPError as exc:
         LOGGER.warning("cycle_command_http_error url=%s status=%s", url, exc.code)
+        if exc.code == 422:
+            try:
+                body = json.loads(exc.read(4096))
+                code = body.get("error", {}).get("code") if isinstance(body, dict) else None
+                if code == "observed_pain_not_grounded":
+                    return False, code
+            except (ValueError, AttributeError, TypeError):
+                pass
         return False, f"http_{exc.code}"
     except urllib.error.URLError as exc:
         LOGGER.warning("cycle_command_url_error url=%s error=%s", url, exc.reason)

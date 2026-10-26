@@ -211,6 +211,7 @@ def test_internal_touch_and_staff_board(tmp_path: Path) -> None:
                 "source": "evorove_lead",
                 "summary": "Fits weekend catering for local events",
                 "identity": {"name": "Jordan", "email": "jordan@example.com"},
+                "payload": {"observed_pain": "Customer requests go unanswered until the next day and people book other companies."},
             },
         )
         assert created.status_code == 200, created.text
@@ -223,6 +224,8 @@ def test_internal_touch_and_staff_board(tmp_path: Path) -> None:
         )
         assert listed.status_code == 200
         assert listed.json()["people"][0]["person_id"] == person_id
+        assert listed.json()["people"][0]["observed_pain"] == "Customer requests go unanswered until the next day and people book other companies."
+        assert listed.json()["people"][0]["pain_status"] == "ready"
         command = client.post(
             f"/api/v1/businesses/tenant-a/board/people/{person_id}/commands",
             headers={"Authorization": f"Bearer {session.token}"},

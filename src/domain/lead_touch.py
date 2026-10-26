@@ -281,6 +281,8 @@ class BoardPerson:
     last_touch_at: datetime
     paused: bool = False
     version: int = 0
+    observed_pain: str | None = None
+    pain_status: str = "none"
 
 
 @dataclass(frozen=True, slots=True)

@@ -31,6 +31,36 @@ from src.persistence.sqlalchemy_models import IntegrationOutboxRow
 
 
 CYCLE_COMMAND_OUTBOX_KIND = "cycle_command"
+PAIN_STATUS_NONE = "none"
+PAIN_STATUS_READY = "ready"
+PAIN_STATUS_REJECTED = "rejected_not_grounded"
+PAIN_STATUS_TOO_LONG = "rejected_too_long"
+PAIN_STATUS_CYCLE_TWO_REJECTED = "rejected_by_cycle2"
+
+
+def _has_grounded_pain(pain: str) -> bool:
+    """Match cycle 2's _has_grounded_reason floor without importing it."""
+    return (
+        len(pain) >= 16
+        and len(pain.split()) >= 3
+        and sum(character.isalpha() for character in pain) >= 10
+    )
+
+
+def _card_pain(value: object) -> tuple[str | None, str]:
+    """Keep the Cold card even when the optional note cannot be forwarded."""
+    if value is None or value == "":
+        return None, PAIN_STATUS_NONE
+    if not isinstance(value, str):
+        return None, PAIN_STATUS_REJECTED
+    pain = value.strip()
+    if not pain:
+        return None, PAIN_STATUS_NONE
+    if len(pain) > 500:
+        return None, PAIN_STATUS_TOO_LONG
+    if not _has_grounded_pain(pain):
+        return pain, PAIN_STATUS_REJECTED
+    return pain, PAIN_STATUS_READY
 
 # Phase 3: "Done" is BOOKED or PAID (the same two states lead_touch.py's own
 # _KIND_TAB already calls BoardTab.DONE); an explicit drop is LOST (covers
@@ -90,6 +120,7 @@ class PersistentLeadTouchService:
             if touch.kind is LeadTouchKind.COMMAND_APPLIED:
                 raise LeadTouchRejected("unknown_person", "Unknown person on the board")
             tab = next_board_tab(BoardTab.COLD, touch.kind)
+            pain, pain_status = _card_pain(touch.payload.get("observed_pain")) if touch.kind is LeadTouchKind.ASSEMBLED else (None, PAIN_STATUS_NONE)
             person = BoardPerson(
                 business_id=touch.business_id,
                 person_id=touch.person_id,
@@ -103,6 +134,8 @@ class PersistentLeadTouchService:
                 last_touch_at=occurred,
                 paused=touch.kind is LeadTouchKind.STOPPED,
                 version=0,
+                observed_pain=pain,
+                pain_status=pain_status,
             )
             uow.board.add_person(person, created_at=occurred)
             if touch.kind is LeadTouchKind.ASSEMBLED and person.tab is BoardTab.COLD:
@@ -400,6 +433,7 @@ def _hand_cold_person_to_cycle_two(uow: UnitOfWork, person: BoardPerson, touch: 
                 "payload": {
                     "reason": str(payload.get("reason") or touch.summary),
                     "reason_source": str(payload.get("reason_source") or ""),
+                    **({"observed_pain": person.observed_pain} if person.pain_status == PAIN_STATUS_READY else {}),
                     # Cold people are never texted (TCPA): an older cycle 1 "sms" means "phone".
                     "channel": {"sms": "phone"}.get(
                         str(payload.get("channel") or ""), str(payload.get("channel") or "")

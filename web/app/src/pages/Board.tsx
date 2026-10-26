@@ -110,6 +110,14 @@ function personLabel(person: BoardPerson): string {
   return person.name || person.email || person.phone || "Person";
 }
 
+function painLabel(person: BoardPerson): string {
+  return person.observed_pain ? `Pain: ${person.observed_pain}` : "No pain found";
+}
+
+function painWasRejected(person: BoardPerson): boolean {
+  return person.pain_status.startsWith("rejected");
+}
+
 export default function Board() {
   const { token, businessId } = useAuth();
   const [tab, setTab] = useState<BoardTab>("cold");
@@ -221,6 +229,11 @@ export default function Board() {
                     >
                       <div className="text-sm font-semibold truncate">{personLabel(person)}</div>
                       <div className="text-xs text-mute mt-1 truncate">{person.summary}</div>
+                      {tab === "cold" && (
+                        <div className="text-xs text-mute mt-1 truncate">
+                          {painLabel(person)}{painWasRejected(person) ? " · Pain rejected" : ""}
+                        </div>
+                      )}
                     </button>
                   </li>
                 ))}
@@ -235,6 +248,11 @@ export default function Board() {
                 <div>
                     <h2 className="text-lg font-semibold">{personLabel(detail.person)}</h2>
                     <p className="text-sm text-mute mt-1">{detail.person.summary}</p>
+                    {detail.person.tab === "cold" && (
+                      <p className="text-sm text-mute mt-2">
+                        {painLabel(detail.person)}{painWasRejected(detail.person) ? " · Pain rejected" : ""}
+                      </p>
+                    )}
                     <p className="text-xs text-mute mt-1">Watch only. The engine writes.</p>
                     <div className="mt-3 flex flex-wrap gap-4 text-xs text-mute">
                       {detail.person.phone && (

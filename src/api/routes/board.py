@@ -53,6 +53,8 @@ def _person_schema(person) -> BoardPersonSchema:
         phone=person.phone,
         email=person.email,
         summary=person.summary,
+        observed_pain=person.observed_pain,
+        pain_status=person.pain_status,
         last_kind=person.last_kind.value,
         last_cycle=person.last_cycle,
         last_touch_at=person.last_touch_at,

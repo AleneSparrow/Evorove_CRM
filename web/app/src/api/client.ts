@@ -898,6 +898,8 @@ export interface BoardPerson {
   phone: string | null;
   email: string | null;
   summary: string;
+  observed_pain: string | null;
+  pain_status: string;
   last_kind: string;
   last_cycle: number;
   last_touch_at: string;
