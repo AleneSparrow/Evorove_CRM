@@ -72,6 +72,8 @@ python -m pip install -r requirements.txt
 pytest
 ```
 
+The cross-repository Cold handoff test uses the same Python interpreter as CRM. Install cycle 1 with `python -m pip install -e ../evorove_lead` and cycle 2 with `python -m pip install -r ../Evorove/requirements.txt`, then run `pytest -m sibling_e2e`. It looks for sibling directories named `evorove_lead`/`Evorove_lead` and `evorove`/`Evorove`; set `EVOROVE_LEAD_PATH` and `EVOROVE_CYCLE2_PATH` to checkout roots when they live elsewhere. A missing checkout is reported as a skip, while an outdated checkout or missing Python dependency fails with an update or install instruction.
+
 ## Lead Intake and Qualification
 
 Milestone 2 executes the first real workflow:
