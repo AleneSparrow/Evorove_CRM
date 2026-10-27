@@ -50,6 +50,60 @@ jobs:
       - run: alembic check
       - run: python -m pytest -q
 
+  sibling_access:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.siblings.outputs.ready }}
+    steps:
+      - name: Check sibling repository access
+        id: siblings
+        env:
+          READ_TOKEN: ${{ secrets.EVOROVE_SIBLINGS_READ_TOKEN }}
+        run: |
+          if [ -n "$READ_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Cold e2e skipped: EVOROVE_SIBLINGS_READ_TOKEN is not configured for reading both sibling repositories."
+          fi
+
+  sibling-cold-e2e:
+    needs: sibling_access
+    if: needs.sibling_access.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: Evorove_CRM
+      - uses: actions/checkout@v4
+        with:
+          repository: AleneSparrow/evorove_lead
+          ref: main
+          path: evorove_lead
+          token: ${{ secrets.EVOROVE_SIBLINGS_READ_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          repository: AleneSparrow/Evorove
+          ref: main
+          path: Evorove
+          token: ${{ secrets.EVOROVE_SIBLINGS_READ_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install all three Python dependency sets
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r Evorove_CRM/requirements.txt -r Evorove/requirements.txt -e ./evorove_lead
+      - name: Test Cold handoff across repositories
+        working-directory: Evorove_CRM
+        env:
+          AI_PROVIDER: deterministic
+          EVOROVE_LEAD_PATH: ${{ github.workspace }}/evorove_lead
+          EVOROVE_CYCLE2_PATH: ${{ github.workspace }}/Evorove
+        run: python -m pytest -q -m sibling_e2e tests/test_cycle1_to_cycle2_e2e.py
+
   frontend:
     runs-on: ubuntu-latest
     defaults:
